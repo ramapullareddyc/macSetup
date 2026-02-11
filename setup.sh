@@ -786,38 +786,87 @@ echo "╚═══════════════════════�
 echo ""
 
 # Determine which phases to run
-SELECTED_PHASES=""
+declare -A PHASE_SELECTED
 
 if [[ "${1:-}" == "--interactive" || "${1:-}" == "-i" ]]; then
-  echo "Select phases to install (Phase 1 is always included):"
-  echo ""
+  # Initialize all optional phases as selected
   for entry in "${PHASES[@]}"; do
     IFS='|' read -r num label fn required <<< "$entry"
-    if [[ "$required" == "1" ]]; then
-      echo "  [$num] $label (required)"
+    PHASE_SELECTED[$num]=1
+  done
+
+  show_menu() {
+    clear
+    echo "╔══════════════════════════════════════════════════════════════╗"
+    echo "║          Select phases to install                           ║"
+    echo "╚══════════════════════════════════════════════════════════════╝"
+    echo ""
+    for entry in "${PHASES[@]}"; do
+      IFS='|' read -r num label fn required <<< "$entry"
+      if [[ "$required" == "1" ]]; then
+        echo "  [✅] $num. $label (required)"
+      elif [[ "${PHASE_SELECTED[$num]}" == "1" ]]; then
+        echo "  [✅] $num. $label"
+      else
+        echo "  [  ] $num. $label"
+      fi
+    done
+    echo ""
+    echo "  Commands:  <number> toggle   |   A select all   |   N unselect all   |   Enter confirm"
+    echo ""
+  }
+
+  while true; do
+    show_menu
+    read -rp "→ " input
+    input="${input^^}"  # uppercase
+    if [[ -z "$input" ]]; then
+      break
+    elif [[ "$input" == "A" ]]; then
+      for entry in "${PHASES[@]}"; do
+        IFS='|' read -r num _ _ _ <<< "$entry"
+        PHASE_SELECTED[$num]=1
+      done
+    elif [[ "$input" == "N" ]]; then
+      for entry in "${PHASES[@]}"; do
+        IFS='|' read -r num _ _ required <<< "$entry"
+        [[ "$required" == "1" ]] && continue
+        PHASE_SELECTED[$num]=0
+      done
     else
-      echo "  [$num] $label"
+      # Toggle individual numbers (space-separated)
+      for num in $input; do
+        # Skip required phases and invalid numbers
+        local is_valid=false
+        for entry in "${PHASES[@]}"; do
+          IFS='|' read -r pnum _ _ required <<< "$entry"
+          if [[ "$pnum" == "$num" && "$required" != "1" ]]; then
+            is_valid=true
+            break
+          fi
+        done
+        if [[ "$is_valid" == "true" ]]; then
+          if [[ "${PHASE_SELECTED[$num]}" == "1" ]]; then
+            PHASE_SELECTED[$num]=0
+          else
+            PHASE_SELECTED[$num]=1
+          fi
+        fi
+      done
     fi
   done
-  echo "  [A] All phases"
-  echo ""
-  read -rp "Enter phase numbers separated by spaces (e.g. '2 4 5 6'), or 'A' for all: " choices
-
-  if [[ "${choices^^}" == "A" ]]; then
-    SELECTED_PHASES="1 2 3 4 5 6 7 8 9"
-  else
-    # Always include Phase 1
-    SELECTED_PHASES="1 $choices"
-  fi
 else
   # Default: run everything
-  SELECTED_PHASES="1 2 3 4 5 6 7 8 9"
+  for entry in "${PHASES[@]}"; do
+    IFS='|' read -r num _ _ _ <<< "$entry"
+    PHASE_SELECTED[$num]=1
+  done
 fi
 
 # Execute selected phases
 for entry in "${PHASES[@]}"; do
   IFS='|' read -r num label fn required <<< "$entry"
-  if [[ " $SELECTED_PHASES " == *" $num "* ]]; then
+  if [[ "${PHASE_SELECTED[$num]}" == "1" ]]; then
     if [[ "$num" == "1" ]]; then
       echo "━━━ Phase $num: $label ━━━"
       "$fn"

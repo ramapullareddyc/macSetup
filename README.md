@@ -23,19 +23,23 @@ Pick only the phases you want:
 This shows a menu:
 
 ```
-  [1] Foundation (Homebrew, Git, SSH, GPG, Xcode, CLI) (required)
-  [2] Shell Configuration (Oh My Zsh, Starship, plugins, .zshrc)
-  [3] macOS System Preferences
-  [4] Development Tools (editors, terminals, Docker, mise)
-  [5] AI & LLM Development (Ollama, LM Studio, Open WebUI, Gemini)
-  [6] React Native Environment (SDK, emulators, CocoaPods)
-  [7] Cloud CLI Tools (AWS, Wrangler)
-  [8] Browsers (Chrome, Firefox)
-  [9] Productivity & Communication Apps (30+ apps)
-  [A] All phases
+  [✅] 1. Foundation (Homebrew, Git, SSH, GPG, Xcode, CLI) (required)
+  [✅] 2. Shell Configuration (Oh My Zsh, Starship, plugins, .zshrc)
+  [✅] 3. macOS System Preferences
+  [✅] 4. Development Tools (editors, terminals, Docker, mise)
+  [✅] 5. AI & LLM Development (Ollama, LM Studio, Open WebUI, Gemini)
+  [✅] 6. React Native Environment (SDK, emulators, CocoaPods)
+  [✅] 7. Cloud CLI Tools (AWS, Wrangler)
+  [✅] 8. Browsers (Chrome, Firefox)
+  [✅] 9. Productivity & Communication Apps (30+ apps)
 
-Enter phase numbers separated by spaces (e.g. '2 4 5 6'), or 'A' for all:
+  Commands:  <number> toggle   |   A select all   |   N unselect all   |   Enter confirm
 ```
+
+- Type a number (e.g. `3`) to toggle it on/off
+- Type multiple numbers (e.g. `7 8 9`) to toggle several at once
+- `A` selects all, `N` unselects all (then toggle individual ones back)
+- Press Enter to confirm and start
 
 Phase 1 always runs (everything else depends on it). Validation always runs at the end.
 
