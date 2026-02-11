@@ -2,6 +2,7 @@
 # Install all: brew bundle --file=Brewfile
 
 # CLI tools
+brew "bash"
 brew "git"
 brew "gh"
 brew "jq"

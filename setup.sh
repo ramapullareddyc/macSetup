@@ -3,7 +3,26 @@
 # Mac Developer Environment Setup Script
 # Automates provisioning for React Native + AI/LLM development
 # Idempotent — safe to re-run
+# Requires Bash 4+ (associative arrays). Auto-installs via Homebrew if needed.
 # =============================================================================
+
+# Bootstrap: ensure Bash 4+ is available, re-exec if running old system Bash
+if [[ "${BASH_VERSINFO[0]}" -lt 4 ]]; then
+  # Check if Homebrew Bash exists
+  if [[ -x /opt/homebrew/bin/bash ]]; then
+    exec /opt/homebrew/bin/bash "$0" "$@"
+  elif [[ -x /usr/local/bin/bash ]]; then
+    exec /usr/local/bin/bash "$0" "$@"
+  else
+    echo "⚠️  Bash ${BASH_VERSION} is too old (need 4+). Installing modern Bash via Homebrew..."
+    if ! command -v brew &>/dev/null; then
+      /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+      eval "$(/opt/homebrew/bin/brew shellenv 2>/dev/null || /usr/local/bin/brew shellenv)"
+    fi
+    brew install bash
+    exec "$(brew --prefix)/bin/bash" "$0" "$@"
+  fi
+fi
 set -euo pipefail
 
 LOG_FILE="$HOME/mac-setup.log"
@@ -210,7 +229,7 @@ phase_1_xcode() {
 }
 
 phase_1_cli_utils() {
-  brew install jq tree gh eza zoxide bat htop wget tldr
+  brew install bash jq tree gh eza zoxide bat htop wget tldr
   tldr --update 2>/dev/null || true
 
   # Authenticate GitHub CLI if token provided
@@ -887,7 +906,7 @@ if [[ "${1:-}" == "--interactive" || "${1:-}" == "-i" ]]; then
       # Toggle individual numbers (space-separated)
       for num in $input; do
         # Skip required phases and invalid numbers
-        local is_valid=false
+        is_valid=false
         for entry in "${PHASES[@]}"; do
           IFS='|' read -r pnum _ _ required <<< "$entry"
           if [[ "$pnum" == "$num" && "$required" != "1" ]]; then
