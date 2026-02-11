@@ -835,6 +835,10 @@ brew install --cask keepingyouawake
 brew install --cask adguard
 brew install --cask adguard-vpn
 
+# Deeper Network DPN — not in Homebrew, installed via DMG (ARM only)
+# ⚠️ Version-pinned URL — update when new releases are available
+# https://downloads.deeper.network/DPN/test/DPN-2.0.0.251202-macos-arm-64.dmg
+
 # Moonlock (MacPaw) — not available via Homebrew, download DMG and open installer
 if [[ ! -d "/Applications/Moonlock.app" ]]; then
   curl -L -o /tmp/Moonlock.dmg "https://macpaw.com/download/moonlock" && {

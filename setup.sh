@@ -632,6 +632,22 @@ phase_9() {
   brew install --cask adguard
   brew install --cask adguard-vpn
 
+  # Security — Deeper Network DPN (not in Homebrew, ARM only)
+  if [[ ! -d "/Applications/DPN.app" ]]; then
+    # ⚠️ Version-pinned URL — update when new releases are available
+    curl -L -o /tmp/DPN.dmg "https://downloads.deeper.network/DPN/test/DPN-2.0.0.251202-macos-arm-64.dmg" && {
+      DPN_VOL=$(hdiutil attach /tmp/DPN.dmg -nobrowse -quiet 2>/dev/null | grep "/Volumes/" | awk -F'\t' '{print $NF}')
+      if [[ -n "$DPN_VOL" ]]; then
+        cp -R "$DPN_VOL"/*.app /Applications/ 2>/dev/null || true
+        hdiutil detach "$DPN_VOL" -quiet 2>/dev/null || true
+      fi
+      rm -f /tmp/DPN.dmg
+      echo "✅ DPN installed"
+    } || echo "⚠️  DPN download failed — install manually from https://deeper.network"
+  else
+    echo "✅ DPN already installed"
+  fi
+
   # Security — Moonlock (not in Homebrew)
   if [[ ! -d "/Applications/Moonlock.app" ]]; then
     curl -L -o /tmp/Moonlock.dmg "https://macpaw.com/download/moonlock" && {
@@ -703,7 +719,7 @@ phase_11() {
 
   # Apps
   for app in "Google Chrome" "Firefox" "Visual Studio Code" "Cursor" "Zed" "Android Studio" \
-             "iTerm" "Ghostty" "Docker" "LM Studio" "Moonlock" "AdGuard" "AdGuard VPN" "Microsoft Word" "Telegram" "WhatsApp" "Discord" \
+             "iTerm" "Ghostty" "Docker" "LM Studio" "Moonlock" "DPN" "AdGuard" "AdGuard VPN" "Microsoft Word" "Telegram" "WhatsApp" "Discord" \
              "Postman" "Raycast" "Rectangle" "1Password" "Notion" "Reactotron" \
              "Spotify" "VLC" "IINA" "AppCleaner" "The Unarchiver" "Keka" \
              "AltTab" "Stats" "KeepingYouAwake" "Obsidian" "zoom.us"; do
