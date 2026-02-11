@@ -527,10 +527,10 @@ phase_4_vscode() {
   local VSCODE_SETTINGS="$VSCODE_SETTINGS_DIR/settings.json"
   mkdir -p "$VSCODE_SETTINGS_DIR"
   if [[ -f "$VSCODE_SETTINGS" ]]; then
-    jq '. + {"terminal.integrated.fontFamily": "MesloLGS NF"}' "$VSCODE_SETTINGS" > "$VSCODE_SETTINGS.tmp" \
+    jq '. + {"terminal.integrated.fontFamily": "MesloLGS Nerd Font"}' "$VSCODE_SETTINGS" > "$VSCODE_SETTINGS.tmp" \
       && mv "$VSCODE_SETTINGS.tmp" "$VSCODE_SETTINGS"
   else
-    echo '{"terminal.integrated.fontFamily": "MesloLGS NF"}' > "$VSCODE_SETTINGS"
+    echo '{"terminal.integrated.fontFamily": "MesloLGS Nerd Font"}' > "$VSCODE_SETTINGS"
   fi
 
   if command -v code &>/dev/null; then
@@ -548,16 +548,28 @@ phase_4_terminals() {
   install_if "$INSTALL_ITERM2" brew install --cask iterm2
   install_if "$INSTALL_GHOSTTY" brew install --cask ghostty
 
-  # iTerm2 Nerd Font
-  [[ "$INSTALL_ITERM2" == "true" ]] && \
-    /usr/libexec/PlistBuddy -c "Set ':New Bookmarks:0:Normal Font' MesloLGSNF-Regular 13" \
-      ~/Library/Preferences/com.googlecode.iterm2.plist 2>/dev/null || true
+  # iTerm2 Nerd Font — need to launch once to create default plist
+  if [[ "$INSTALL_ITERM2" == "true" ]]; then
+    local ITERM_PLIST="$HOME/Library/Preferences/com.googlecode.iterm2.plist"
+    if [[ ! -f "$ITERM_PLIST" ]]; then
+      open -a iTerm 2>/dev/null || true
+      sleep 3
+      osascript -e 'tell application "iTerm" to quit' 2>/dev/null || true
+      sleep 1
+    fi
+    /usr/libexec/PlistBuddy \
+      -c "Set ':New Bookmarks:0:Normal Font' 'MesloLGSNerdFont-Regular 13'" \
+      "$ITERM_PLIST" 2>/dev/null || \
+    /usr/libexec/PlistBuddy \
+      -c "Add ':New Bookmarks:0:Normal Font' string 'MesloLGSNerdFont-Regular 13'" \
+      "$ITERM_PLIST" 2>/dev/null || true
+  fi
 
   # Ghostty Nerd Font
   if [[ "$INSTALL_GHOSTTY" == "true" ]]; then
     mkdir -p ~/.config/ghostty
     grep -q "font-family" ~/.config/ghostty/config 2>/dev/null || \
-      echo "font-family = MesloLGS NF" >> ~/.config/ghostty/config
+      echo "font-family = MesloLGS Nerd Font" >> ~/.config/ghostty/config
   fi
 }
 
