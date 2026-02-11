@@ -26,18 +26,19 @@ fi
 set -eo pipefail
 
 LOG_FILE="$HOME/mac-setup.log"
-exec > >(tee -a "$LOG_FILE") 2>&1
-echo "=== Mac Setup started at $(date) ==="
 
 # ---------------------------------------------------------------------------
-# Sudo keepalive — ask once, refresh in background
+# Sudo keepalive — ask once BEFORE tee redirect (needs real tty)
 # ---------------------------------------------------------------------------
 echo "🔐 Admin privileges required. Enter your password once:"
 sudo -v || { echo "❌ sudo failed — run with admin privileges"; exit 1; }
-# Keep sudo alive in background until script exits
-(while true; do sudo -n true; sleep 30; done) &
+(while kill -0 $$ 2>/dev/null; do sudo -n true; sleep 10; done) &>/dev/null &
 SUDO_KEEPALIVE_PID=$!
-trap 'kill $SUDO_KEEPALIVE_PID 2>/dev/null; wait $SUDO_KEEPALIVE_PID 2>/dev/null' EXIT
+trap 'kill $SUDO_KEEPALIVE_PID 2>/dev/null' EXIT
+
+# Now redirect stdout/stderr through tee for logging
+exec > >(tee -a "$LOG_FILE") 2>&1
+echo "=== Mac Setup started at $(date) ==="
 
 # ---------------------------------------------------------------------------
 # Load user config
