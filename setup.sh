@@ -30,6 +30,16 @@ exec > >(tee -a "$LOG_FILE") 2>&1
 echo "=== Mac Setup started at $(date) ==="
 
 # ---------------------------------------------------------------------------
+# Sudo keepalive — ask once, refresh in background
+# ---------------------------------------------------------------------------
+echo "🔐 Admin privileges required. Enter your password once:"
+sudo -v
+# Keep sudo alive in background until script exits
+while true; do sudo -n true; sleep 50; done 2>/dev/null &
+SUDO_KEEPALIVE_PID=$!
+trap 'kill $SUDO_KEEPALIVE_PID 2>/dev/null' EXIT
+
+# ---------------------------------------------------------------------------
 # Load user config
 # ---------------------------------------------------------------------------
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -162,7 +172,7 @@ phase_1_zsh() {
 }
 
 phase_1_git() {
-  brew install git
+  command -v git &>/dev/null || brew install git
   git config --global init.defaultBranch main
   git config --global pull.rebase true
   git config --global core.editor "code --wait"
@@ -206,7 +216,8 @@ EOF
 }
 
 phase_1_gpg() {
-  brew install gnupg pinentry-mac
+  command -v gpg &>/dev/null || brew install gnupg
+  command -v pinentry-mac &>/dev/null || brew install pinentry-mac
   mkdir -p ~/.gnupg
   chmod 700 ~/.gnupg
   grep -q "pinentry-program" ~/.gnupg/gpg-agent.conf 2>/dev/null || \
@@ -250,24 +261,36 @@ phase_1_xcode() {
     xcode-select --install 2>/dev/null || true
     echo "⏳ Waiting for Command Line Tools installation..."
     until xcode-select -p &>/dev/null; do sleep 5; done
+  else
+    echo "✅ Xcode Command Line Tools already installed"
   fi
 
-  brew install mas
-  mas list > /dev/null 2>&1 || echo "⚠️  Sign into the App Store before continuing"
-  mas install 497799835 || echo "⚠️  Xcode install failed — sign into App Store and re-run"
+  if ! command -v mas &>/dev/null; then
+    brew install mas
+  fi
+  if [[ ! -d "/Applications/Xcode.app" ]]; then
+    mas install 497799835 2>/dev/null || echo "⚠️  Xcode install failed — sign into App Store and re-run"
+  else
+    echo "✅ Xcode already installed"
+  fi
   sudo xcodebuild -license accept 2>/dev/null || true
   sudo xcode-select -s /Applications/Xcode.app/Contents/Developer 2>/dev/null || true
 }
 
 phase_1_cli_utils() {
-  brew install bash jq tree gh eza zoxide bat htop wget tldr
+  local cli_tools=(bash jq tree gh eza zoxide bat htop wget tldr)
+  for tool in "${cli_tools[@]}"; do
+    command -v "$tool" &>/dev/null && echo "✅ $tool already installed" || brew install "$tool"
+  done
   tldr --update 2>/dev/null || true
 
   # Authenticate GitHub CLI if token provided
   if [[ -n "$GITHUB_TOKEN" ]]; then
-    echo "$GITHUB_TOKEN" | gh auth login --with-token 2>/dev/null \
-      && echo "✅ GitHub CLI authenticated" \
-      || echo "⚠️  GitHub CLI auth failed — run 'gh auth login' manually"
+    if gh auth status &>/dev/null; then
+      echo "✅ GitHub CLI already authenticated"
+    else
+      echo "$GITHUB_TOKEN" | gh auth login --with-token && echo "✅ GitHub CLI authenticated" || echo "⚠️  GitHub CLI auth failed — run 'gh auth login' manually"
+    fi
   fi
 }
 
@@ -290,20 +313,20 @@ phase_2() {
     sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)" "" --unattended
 
   # 2.2 Starship
-  brew install starship
+  command -v starship &>/dev/null && echo "✅ Starship already installed" || brew install starship
 
   # 2.3 Nerd Font
-  brew install --cask font-meslo-lg-nerd-font
+  brew install --cask font-meslo-lg-nerd-font 2>/dev/null || true
 
   # 2.4 Custom Zsh Plugins
   local ZSH_CUSTOM="${ZSH_CUSTOM:-$HOME/.oh-my-zsh/custom}"
   for plugin in zsh-autosuggestions zsh-completions zsh-history-substring-search zsh-syntax-highlighting; do
-    [[ -d "$ZSH_CUSTOM/plugins/$plugin" ]] || \
+    [[ -d "$ZSH_CUSTOM/plugins/$plugin" ]] && echo "✅ $plugin already installed" || \
       git clone "https://github.com/zsh-users/$plugin" "$ZSH_CUSTOM/plugins/$plugin"
   done
 
   # 2.5 fzf
-  brew install fzf
+  command -v fzf &>/dev/null && echo "✅ fzf already installed" || brew install fzf
 
   # 2.6 Generate .zshrc
   cat > ~/.zshrc << ZSHRC
@@ -541,7 +564,7 @@ phase_4_docker() {
 
 phase_4_mise() {
   [[ "$INSTALL_MISE" == "true" ]] || { echo "⏭  Skipping mise + runtimes"; return 0; }
-  brew install mise
+  command -v mise &>/dev/null && echo "✅ mise already installed" || brew install mise
   eval "$(mise activate zsh)"
 
   mise use --global python@latest
@@ -579,7 +602,7 @@ phase_4() {
 
 phase_5_ollama() {
   [[ "$INSTALL_OLLAMA" == "true" ]] || { echo "⏭  Skipping Ollama"; return 0; }
-  brew install ollama
+  command -v ollama &>/dev/null && echo "✅ Ollama already installed" || brew install ollama
 
   if [[ -z "$OLLAMA_MODEL" ]]; then
     echo "ℹ️  OLLAMA_MODEL is empty — skipping model download"
@@ -646,9 +669,15 @@ phase_5() {
 # =============================================================================
 
 phase_6_core() {
-  install_if "$INSTALL_WATCHMAN" brew install watchman
-  install_if "$INSTALL_COCOAPODS" brew install cocoapods
-  [[ "$INSTALL_EAS_CLI" == "true" ]] && npm install -g eas-cli || echo "⏭  Skipping EAS CLI"
+  if [[ "$INSTALL_WATCHMAN" == "true" ]]; then
+    command -v watchman &>/dev/null && echo "✅ watchman already installed" || brew install watchman
+  fi
+  if [[ "$INSTALL_COCOAPODS" == "true" ]]; then
+    command -v pod &>/dev/null && echo "✅ cocoapods already installed" || brew install cocoapods
+  fi
+  if [[ "$INSTALL_EAS_CLI" == "true" ]]; then
+    command -v eas &>/dev/null && echo "✅ eas-cli already installed" || npm install -g eas-cli
+  fi
 }
 
 phase_6_android_sdk() {
@@ -691,8 +720,12 @@ phase_6() {
 # =============================================================================
 
 phase_7() {
-  install_if "$INSTALL_AWSCLI" brew install awscli
-  [[ "$INSTALL_WRANGLER" == "true" ]] && npm install -g wrangler || echo "⏭  Skipping Wrangler"
+  if [[ "$INSTALL_AWSCLI" == "true" ]]; then
+    command -v aws &>/dev/null && echo "✅ awscli already installed" || brew install awscli
+  fi
+  if [[ "$INSTALL_WRANGLER" == "true" ]]; then
+    command -v wrangler &>/dev/null && echo "✅ wrangler already installed" || npm install -g wrangler
+  fi
 }
 
 # =============================================================================
