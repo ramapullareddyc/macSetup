@@ -88,6 +88,16 @@ INSTALL_SPOTIFY="true"
 INSTALL_VLC="true"
 INSTALL_IINA="true"
 
+# Streaming (Mac App Store — iOS apps on Apple Silicon)
+INSTALL_AHA="true"                 # aha — Telugu & Tamil streaming
+INSTALL_JIOHOTSTAR="true"          # JioHotstar (Disney+ Hotstar)
+INSTALL_PRIME_VIDEO="true"         # Amazon Prime Video
+INSTALL_NETFLIX="true"             # Netflix (iOS app on Apple Silicon)
+INSTALL_ZEE5="true"                # ZEE5 — Hindi, Telugu, Tamil, Bengali
+INSTALL_SUN_NXT="true"             # Sun NXT — Tamil, Telugu, Malayalam, Kannada
+INSTALL_ETV_WIN="true"             # ETV Win — Telugu entertainment
+INSTALL_SONYLIV="true"             # SonyLIV — originals, sports, TV shows
+
 # Utilities
 INSTALL_APPCLEANER="true"
 INSTALL_THE_UNARCHIVER="true"

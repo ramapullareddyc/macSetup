@@ -71,6 +71,8 @@ OLLAMA_MODEL="${OLLAMA_MODEL:-qwen2.5-coder:7b}"
 : "${INSTALL_GOOGLE_DRIVE:=true}" "${INSTALL_POSTMAN:=true}" "${INSTALL_RAYCAST:=true}"
 : "${INSTALL_RECTANGLE:=true}" "${INSTALL_1PASSWORD:=true}"
 : "${INSTALL_SPOTIFY:=true}" "${INSTALL_VLC:=true}" "${INSTALL_IINA:=true}"
+: "${INSTALL_AHA:=true}" "${INSTALL_JIOHOTSTAR:=true}" "${INSTALL_PRIME_VIDEO:=true}" "${INSTALL_NETFLIX:=true}"
+: "${INSTALL_ZEE5:=true}" "${INSTALL_SUN_NXT:=true}" "${INSTALL_ETV_WIN:=true}" "${INSTALL_SONYLIV:=true}"
 : "${INSTALL_APPCLEANER:=true}" "${INSTALL_THE_UNARCHIVER:=true}" "${INSTALL_KEKA:=true}"
 : "${INSTALL_ALTTAB:=true}" "${INSTALL_STATS:=true}" "${INSTALL_KEEPINGYOUAWAKE:=true}"
 : "${INSTALL_ADGUARD:=true}" "${INSTALL_ADGUARD_VPN:=true}" "${INSTALL_VPN_UNLIMITED:=true}"
@@ -859,6 +861,16 @@ phase_9() {
   install_if "$INSTALL_SPOTIFY" brew install --cask spotify
   install_if "$INSTALL_VLC" brew install --cask vlc
   install_if "$INSTALL_IINA" brew install --cask iina
+
+  # Streaming (Mac App Store — iOS apps on Apple Silicon)
+  [[ "$INSTALL_AHA" == "true" ]]         && { mas install 1488739001 || echo "⚠️  aha install failed"; }         || echo "⏭  Skipping aha"
+  [[ "$INSTALL_JIOHOTSTAR" == "true" ]]  && { mas install 934459219  || echo "⚠️  JioHotstar install failed"; }  || echo "⏭  Skipping JioHotstar"
+  [[ "$INSTALL_PRIME_VIDEO" == "true" ]] && { mas install 545519333  || echo "⚠️  Prime Video install failed"; } || echo "⏭  Skipping Prime Video"
+  [[ "$INSTALL_NETFLIX" == "true" ]]     && { mas install 363590051  || echo "⚠️  Netflix install failed"; }     || echo "⏭  Skipping Netflix"
+  [[ "$INSTALL_ZEE5" == "true" ]]        && { mas install 743691886  || echo "⚠️  ZEE5 install failed"; }        || echo "⏭  Skipping ZEE5"
+  [[ "$INSTALL_SUN_NXT" == "true" ]]     && { mas install 1244757492 || echo "⚠️  Sun NXT install failed"; }     || echo "⏭  Skipping Sun NXT"
+  [[ "$INSTALL_ETV_WIN" == "true" ]]     && { mas install 1245077673 || echo "⚠️  ETV Win install failed"; }     || echo "⏭  Skipping ETV Win"
+  [[ "$INSTALL_SONYLIV" == "true" ]]     && { mas install 587794258  || echo "⚠️  SonyLIV install failed"; }     || echo "⏭  Skipping SonyLIV"
 
   # Utilities
   install_if "$INSTALL_APPCLEANER" brew install --cask appcleaner
