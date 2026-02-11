@@ -230,7 +230,7 @@ Google Chrome and Firefox.
 **Dev Productivity:** Postman, Raycast, Rectangle, 1Password
 **Media:** Spotify, VLC, IINA
 **Utilities:** AppCleaner, The Unarchiver, Keka, AltTab, Stats, KeepingYouAwake
-**Security:** [Moonlock](https://macpaw.com/moonlock) (MacPaw) — installed via DMG (not in Homebrew)
+**Security:** [AdGuard](https://adguard.com) (ad/tracker blocker), [AdGuard VPN](https://adguard-vpn.com), [Moonlock](https://macpaw.com/moonlock) (MacPaw) — Moonlock installed via DMG (not in Homebrew)
 
 ### Phase 11: Validation
 

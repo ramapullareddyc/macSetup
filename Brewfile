@@ -76,6 +76,10 @@ cask "alt-tab"
 cask "stats"
 cask "keepingyouawake"
 
+# Security
+cask "adguard"
+cask "adguard-vpn"
+
 # Mac App Store
 mas "Xcode", id: 497799835
 

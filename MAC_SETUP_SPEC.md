@@ -831,6 +831,10 @@ brew install --cask stats
 brew install --cask keepingyouawake
 
 # Security
+# Security
+brew install --cask adguard
+brew install --cask adguard-vpn
+
 # Moonlock (MacPaw) — not available via Homebrew, download DMG and open installer
 if [[ ! -d "/Applications/Moonlock.app" ]]; then
   curl -L -o /tmp/Moonlock.dmg "https://macpaw.com/download/moonlock" && {

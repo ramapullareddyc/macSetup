@@ -628,6 +628,10 @@ phase_9() {
   brew install --cask stats
   brew install --cask keepingyouawake
 
+  # Security
+  brew install --cask adguard
+  brew install --cask adguard-vpn
+
   # Security — Moonlock (not in Homebrew)
   if [[ ! -d "/Applications/Moonlock.app" ]]; then
     curl -L -o /tmp/Moonlock.dmg "https://macpaw.com/download/moonlock" && {
@@ -699,7 +703,7 @@ phase_11() {
 
   # Apps
   for app in "Google Chrome" "Firefox" "Visual Studio Code" "Cursor" "Zed" "Android Studio" \
-             "iTerm" "Ghostty" "Docker" "LM Studio" "Moonlock" "Microsoft Word" "Telegram" "WhatsApp" "Discord" \
+             "iTerm" "Ghostty" "Docker" "LM Studio" "Moonlock" "AdGuard" "AdGuard VPN" "Microsoft Word" "Telegram" "WhatsApp" "Discord" \
              "Postman" "Raycast" "Rectangle" "1Password" "Notion" "Reactotron" \
              "Spotify" "VLC" "IINA" "AppCleaner" "The Unarchiver" "Keka" \
              "AltTab" "Stats" "KeepingYouAwake" "Obsidian" "zoom.us"; do
