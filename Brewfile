@@ -82,6 +82,8 @@ cask "adguard-vpn"
 
 # Mac App Store
 mas "Xcode", id: 497799835
+mas "VPN Unlimited", id: 694633015
+mas "KeepSolid SmartDNS", id: 1475622766
 
 # Not in Homebrew (installed via DMG in setup.sh)
 # Moonlock (MacPaw) — https://macpaw.com/download/moonlock

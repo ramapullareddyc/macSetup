@@ -834,6 +834,8 @@ brew install --cask keepingyouawake
 # Security
 brew install --cask adguard
 brew install --cask adguard-vpn
+mas install 694633015   # VPN Unlimited (KeepSolid)
+mas install 1475622766  # KeepSolid SmartDNS
 
 # Deeper Network DPN — not in Homebrew, installed via DMG (ARM only)
 # ⚠️ Version-pinned URL — update when new releases are available

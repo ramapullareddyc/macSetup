@@ -631,6 +631,8 @@ phase_9() {
   # Security
   brew install --cask adguard
   brew install --cask adguard-vpn
+  mas install 694633015   # VPN Unlimited (KeepSolid)
+  mas install 1475622766  # KeepSolid SmartDNS
 
   # Security — Deeper Network DPN (not in Homebrew, ARM only)
   if [[ ! -d "/Applications/DPN.app" ]]; then
@@ -719,7 +721,8 @@ phase_11() {
 
   # Apps
   for app in "Google Chrome" "Firefox" "Visual Studio Code" "Cursor" "Zed" "Android Studio" \
-             "iTerm" "Ghostty" "Docker" "LM Studio" "Moonlock" "DPN" "AdGuard" "AdGuard VPN" "Microsoft Word" "Telegram" "WhatsApp" "Discord" \
+             "iTerm" "Ghostty" "Docker" "LM Studio" "Moonlock" "DPN" "AdGuard" "AdGuard VPN" \
+             "VPN Unlimited" "KeepSolid SmartDNS" "Microsoft Word" "Telegram" "WhatsApp" "Discord" \
              "Postman" "Raycast" "Rectangle" "1Password" "Notion" "Reactotron" \
              "Spotify" "VLC" "IINA" "AppCleaner" "The Unarchiver" "Keka" \
              "AltTab" "Stats" "KeepingYouAwake" "Obsidian" "zoom.us"; do
