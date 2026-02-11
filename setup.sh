@@ -889,15 +889,27 @@ phase_9() {
   install_if "$INSTALL_VLC" brew install --cask vlc
   install_if "$INSTALL_IINA" brew install --cask iina
 
-  # Streaming (Mac App Store — iOS apps on Apple Silicon)
-  [[ "$INSTALL_AHA" == "true" ]]         && { mas install 1488739001 || echo "⚠️  aha install failed"; }         || echo "⏭  Skipping aha"
-  [[ "$INSTALL_JIOHOTSTAR" == "true" ]]  && { mas install 934459219  || echo "⚠️  JioHotstar install failed"; }  || echo "⏭  Skipping JioHotstar"
-  [[ "$INSTALL_PRIME_VIDEO" == "true" ]] && { mas install 545519333  || echo "⚠️  Prime Video install failed"; } || echo "⏭  Skipping Prime Video"
-  [[ "$INSTALL_NETFLIX" == "true" ]]     && { mas install 363590051  || echo "⚠️  Netflix install failed"; }     || echo "⏭  Skipping Netflix"
-  [[ "$INSTALL_ZEE5" == "true" ]]        && { mas install 743691886  || echo "⚠️  ZEE5 install failed"; }        || echo "⏭  Skipping ZEE5"
-  [[ "$INSTALL_SUN_NXT" == "true" ]]     && { mas install 1244757492 || echo "⚠️  Sun NXT install failed"; }     || echo "⏭  Skipping Sun NXT"
-  [[ "$INSTALL_ETV_WIN" == "true" ]]     && { mas install 1245077673 || echo "⚠️  ETV Win install failed"; }     || echo "⏭  Skipping ETV Win"
-  [[ "$INSTALL_SONYLIV" == "true" ]]     && { mas install 587794258  || echo "⚠️  SonyLIV install failed"; }     || echo "⏭  Skipping SonyLIV"
+  # Streaming (iOS apps on Apple Silicon — must be "acquired" by Apple ID first)
+  # mas install fails if the account never downloaded the app. We try mas first;
+  # on failure, open the App Store page so the user can click "Get" once.
+  mas_or_open() {
+    local id="$1" name="$2" toggle="$3"
+    [[ "$toggle" != "true" ]] && { echo "⏭  Skipping $name"; return 0; }
+    if mas install "$id" 2>&1 | grep -q "Installed\|already installed"; then
+      echo "✅  $name installed"
+    else
+      echo "⚠️  $name: opening App Store — click 'Get' then re-run script"
+      open "macappstore://apps.apple.com/app/id${id}" 2>/dev/null || true
+    fi
+  }
+  mas_or_open 1488739001 "aha"         "$INSTALL_AHA"
+  mas_or_open 934459219  "JioHotstar"  "$INSTALL_JIOHOTSTAR"
+  mas_or_open 545519333  "Prime Video" "$INSTALL_PRIME_VIDEO"
+  mas_or_open 363590051  "Netflix"     "$INSTALL_NETFLIX"
+  mas_or_open 743691886  "ZEE5"        "$INSTALL_ZEE5"
+  mas_or_open 1244757492 "Sun NXT"     "$INSTALL_SUN_NXT"
+  mas_or_open 1245077673 "ETV Win"     "$INSTALL_ETV_WIN"
+  mas_or_open 587794258  "SonyLIV"     "$INSTALL_SONYLIV"
 
   # Utilities
   install_if "$INSTALL_APPCLEANER" brew install --cask appcleaner
@@ -910,8 +922,8 @@ phase_9() {
   # Security
   install_if "$INSTALL_ADGUARD" brew install --cask adguard
   install_if "$INSTALL_ADGUARD_VPN" brew install --cask adguard-vpn
-  [[ "$INSTALL_VPN_UNLIMITED" == "true" ]] && { mas install 694633015 || echo "⚠️  VPN Unlimited install failed"; } || echo "⏭  Skipping VPN Unlimited"
-  [[ "$INSTALL_KEEPSOLID_SMARTDNS" == "true" ]] && { mas install 1475622766 || echo "⚠️  KeepSolid SmartDNS install failed"; } || echo "⏭  Skipping KeepSolid SmartDNS"
+  mas_or_open 694633015  "VPN Unlimited"     "$INSTALL_VPN_UNLIMITED"
+  mas_or_open 1475622766 "KeepSolid SmartDNS" "$INSTALL_KEEPSOLID_SMARTDNS"
 
   # Security — Deeper Network DPN (not in Homebrew, ARM only)
   if [[ "$INSTALL_DPN" == "true" ]]; then
