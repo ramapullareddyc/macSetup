@@ -233,6 +233,7 @@ All tools are free or have generous free tiers.
 | [LM Studio](https://lmstudio.ai) | Desktop GUI for browsing/downloading/running Hugging Face models via MLX |
 | [Open WebUI](https://github.com/open-webui/open-webui) | Self-hosted ChatGPT-style web interface connected to Ollama (Docker container on `localhost:3000`) |
 | [Gemini CLI](https://github.com/google-gemini/gemini-cli) | Google's terminal agent — Gemini 2.5 Pro with 1M token context, free tier with Google account |
+| [Dockhand](https://dockhand.pro) | Docker management web UI on `localhost:3001` — container ops, compose stacks, vulnerability scanning (free tier, always installed) |
 | [Continue.dev](https://continue.dev) | VS Code extension — autocomplete + chat backed by local Ollama models |
 | [Cline](https://github.com/cline/cline) | VS Code extension — agentic multi-file editing, can use Ollama as backend |
 

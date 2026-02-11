@@ -686,8 +686,26 @@ phase_5_gemini_cli() {
   npm install -g @google/gemini-cli
 }
 
+phase_5_dockhand() {
+  [[ "$CONTAINER_RUNTIME" == "none" ]] && { echo "⏭  Skipping Dockhand — no container runtime"; return 0; }
+  if ! docker info &>/dev/null; then
+    echo "⚠️  Docker daemon not running — skipping Dockhand. Start runtime and run: docker start dockhand"
+    return 0
+  fi
+  if ! docker ps -a --format '{{.Names}}' | grep -q '^dockhand$'; then
+    docker run -d -p 3001:3000 \
+      -v /var/run/docker.sock:/var/run/docker.sock \
+      -v dockhand_data:/app/data \
+      --name dockhand \
+      --restart unless-stopped \
+      fnsys/dockhand:latest
+  else
+    docker start dockhand 2>/dev/null || true
+  fi
+}
+
 phase_5() {
-  run_sub_phases phase_5_ollama phase_5_lm_studio phase_5_open_webui phase_5_gemini_cli
+  run_sub_phases phase_5_ollama phase_5_lm_studio phase_5_open_webui phase_5_dockhand phase_5_gemini_cli
 }
 
 # =============================================================================
@@ -909,6 +927,8 @@ phase_11() {
 
   docker ps --filter "name=open-webui" --format '{{.Names}}' 2>/dev/null | grep -q open-webui \
     && check_pass "Open WebUI (running)" || check_warn "Open WebUI container not running"
+  docker ps --filter "name=dockhand" --format '{{.Names}}' 2>/dev/null | grep -q dockhand \
+    && check_pass "Dockhand (running on :3001)" || check_warn "Dockhand container not running"
 
   # CLI utilities
   for cmd in jq tree gh eza zoxide bat htop wget tldr; do
