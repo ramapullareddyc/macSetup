@@ -439,8 +439,9 @@ defaults write NSGlobalDomain NSNavPanelExpandedStateForSaveMode2 -bool true
 defaults write NSGlobalDomain PMPrintingExpandedStateForPrint -bool true
 defaults write NSGlobalDomain PMPrintingExpandedStateForPrint2 -bool true
 
-# Disable Crash Reporter dialog (reports sent silently)
+# Disable Crash Reporter — no dialog, no submission
 defaults write com.apple.CrashReporter DialogType -string "none"
+sudo defaults write /Library/Application\ Support/CrashReporter/DiagnosticMessagesHistory AutoSubmit -bool false 2>/dev/null || true
 
 # Restart affected services
 killall Finder

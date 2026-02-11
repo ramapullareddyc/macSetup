@@ -118,7 +118,7 @@ Applies developer-friendly defaults via `defaults write`:
 | Password after sleep | Immediately |
 | Firewall | ✅ On |
 | Save/Print dialogs | Expanded by default |
-| Crash Reporter | Silent (no dialog) |
+| Crash Reporter | ❌ Off (no dialog, no submission) |
 
 Restarts Finder, Dock, and SystemUIServer to apply changes immediately.
 
