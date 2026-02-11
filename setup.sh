@@ -617,6 +617,12 @@ phase_4_terminals() {
     /usr/libexec/PlistBuddy \
       -c "Add ':New Bookmarks:0:Normal Font' string 'MesloLGSNerdFont-Regular 13'" \
       "$ITERM_PLIST" 2>/dev/null || true
+    /usr/libexec/PlistBuddy \
+      -c "Set ':New Bookmarks:0:Non Ascii Font' 'MesloLGSNerdFont-Regular 13'" \
+      "$ITERM_PLIST" 2>/dev/null || \
+    /usr/libexec/PlistBuddy \
+      -c "Add ':New Bookmarks:0:Non Ascii Font' string 'MesloLGSNerdFont-Regular 13'" \
+      "$ITERM_PLIST" 2>/dev/null || true
   fi
 
   # Ghostty Nerd Font
