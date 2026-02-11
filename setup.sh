@@ -23,7 +23,7 @@ if [[ "${BASH_VERSINFO[0]}" -lt 4 ]]; then
     exec "$(brew --prefix)/bin/bash" "$0" "$@"
   fi
 fi
-set -euo pipefail
+set -eo pipefail
 
 LOG_FILE="$HOME/mac-setup.log"
 exec > >(tee -a "$LOG_FILE") 2>&1
@@ -33,11 +33,11 @@ echo "=== Mac Setup started at $(date) ==="
 # Sudo keepalive — ask once, refresh in background
 # ---------------------------------------------------------------------------
 echo "🔐 Admin privileges required. Enter your password once:"
-sudo -v
+sudo -v || { echo "❌ sudo failed — run with admin privileges"; exit 1; }
 # Keep sudo alive in background until script exits
-while true; do sudo -n true; sleep 50; done 2>/dev/null &
+(while true; do sudo -n true; sleep 30; done) &
 SUDO_KEEPALIVE_PID=$!
-trap 'kill $SUDO_KEEPALIVE_PID 2>/dev/null' EXIT
+trap 'kill $SUDO_KEEPALIVE_PID 2>/dev/null; wait $SUDO_KEEPALIVE_PID 2>/dev/null' EXIT
 
 # ---------------------------------------------------------------------------
 # Load user config
