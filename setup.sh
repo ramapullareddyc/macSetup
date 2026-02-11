@@ -122,6 +122,7 @@ run_phase() {
   else
     echo "❌ Failed: $phase_name (continuing...)" >&2
   fi
+  return 0
 }
 
 # Run each sub-function independently so one failure doesn't skip the rest
@@ -133,6 +134,7 @@ run_sub_phases() {
     set -e
     [[ $rc -ne 0 ]] && echo "⚠️  $fn had errors (continuing...)" >&2
   done
+  return 0
 }
 
 # Install a cask/formula only if its toggle is "true", with retry on failure
@@ -299,8 +301,9 @@ phase_1() {
   phase_1_rosetta
   phase_1_homebrew
   phase_1_zsh
-  # Remaining Phase 1 steps run independently (Xcode/mas failure shouldn't abort)
+  # Remaining Phase 1 steps run independently
   run_sub_phases phase_1_git phase_1_ssh phase_1_gpg phase_1_xcode phase_1_cli_utils
+  return 0  # Always succeed — sub-phase errors are logged but not fatal
 }
 
 # =============================================================================
@@ -1004,12 +1007,7 @@ wait_for_network || true
 for entry in "${PHASES[@]}"; do
   IFS='|' read -r num label fn required <<< "$entry"
   if [[ "${PHASE_SELECTED[$num]}" == "1" ]]; then
-    if [[ "$num" == "1" ]]; then
-      echo "━━━ Phase $num: $label ━━━"
-      "$fn"
-    else
-      run_phase "Phase $num: $label" "$fn"
-    fi
+    run_phase "Phase $num: $label" "$fn"
   else
     echo ""
     echo "⏭  Skipping Phase $num: $label"
