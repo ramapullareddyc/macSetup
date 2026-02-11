@@ -846,12 +846,17 @@ phase_8() {
 phase_9() {
   # Office & Productivity
   # Office & Productivity (Mac App Store — individual apps, free to download)
+  # Note: mas requires App Store sign-in. If installs fail with "no downloads",
+  # sign into App Store.app first, then re-run.
   if [[ "$INSTALL_MICROSOFT_OFFICE" == "true" ]]; then
-    mas install 462054704 || echo "⚠️  Microsoft Word install failed"
-    mas install 462058435 || echo "⚠️  Microsoft Excel install failed"
-    mas install 462062816 || echo "⚠️  Microsoft PowerPoint install failed"
-    mas install 985367838 || echo "⚠️  Microsoft Outlook install failed"
-    mas install 784801555 || echo "⚠️  Microsoft OneNote install failed"
+    if ! mas account &>/dev/null; then
+      echo "⚠️  Not signed into App Store — Office apps may fail. Sign in and re-run."
+    fi
+    mas install 462054704 2>&1 | grep -v "not indexed" || echo "⚠️  Microsoft Word install failed"
+    mas install 462058435 2>&1 | grep -v "not indexed" || echo "⚠️  Microsoft Excel install failed"
+    mas install 462062816 2>&1 | grep -v "not indexed" || echo "⚠️  Microsoft PowerPoint install failed"
+    mas install 985367838 2>&1 | grep -v "not indexed" || echo "⚠️  Microsoft Outlook install failed"
+    mas install 784801555 2>&1 | grep -v "not indexed" || echo "⚠️  Microsoft OneNote install failed"
   else
     echo "⏭  Skipping Microsoft Office"
   fi
@@ -976,11 +981,14 @@ phase_11() {
   check_cmd python "Python $(python --version 2>&1 | awk '{print $2}')"
   check_cmd java "Java (Zulu 17)"
 
-  # --- Environment ---
-  [[ -n "${JAVA_HOME:-}" ]] && INSTALLED+=("JAVA_HOME") || FAILED+=("JAVA_HOME not set")
-  [[ -n "${ANDROID_HOME:-}" ]] && INSTALLED+=("ANDROID_HOME") || FAILED+=("ANDROID_HOME not set")
+  # --- Environment (resolve from actual install locations, not shell env) ---
+  local _JAVA_HOME="${JAVA_HOME:-$HOME/.local/share/mise/installs/java/zulu-17}"
+  local _ANDROID_HOME="${ANDROID_HOME:-$HOME/Library/Android/sdk}"
+  [[ -d "$_JAVA_HOME" ]] && INSTALLED+=("JAVA_HOME") || FAILED+=("JAVA_HOME — mise java not installed")
+  [[ -d "$_ANDROID_HOME/platform-tools" ]] && INSTALLED+=("ANDROID_HOME") || FAILED+=("ANDROID_HOME — Android SDK not installed")
 
   # --- React Native ---
+  export PATH="$HOME/Library/Android/sdk/platform-tools:$HOME/Library/Android/sdk/emulator:$HOME/Library/Android/sdk/cmdline-tools/latest/bin:$PATH"
   check_cmd watchman "Watchman"
   check_cmd pod "CocoaPods"
   check_cmd adb "Android platform-tools"
