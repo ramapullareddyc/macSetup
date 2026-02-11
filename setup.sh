@@ -568,7 +568,9 @@ phase_4_docker() {
 phase_4_mise() {
   [[ "$INSTALL_MISE" == "true" ]] || { echo "⏭  Skipping mise + runtimes"; return 0; }
   command -v mise &>/dev/null && echo "✅ mise already installed" || brew install mise
-  eval "$(mise activate zsh)"
+  # Add mise shims to PATH for this session (don't eval activate — it outputs
+  # informational text that breaks under eval, e.g. fish shell messages)
+  export PATH="$HOME/.local/share/mise/shims:$PATH"
 
   mise use --global python@latest
   mise use --global node@lts
