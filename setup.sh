@@ -765,6 +765,19 @@ phase_11() {
 # Main — Execute all phases
 # =============================================================================
 
+# Phase definitions: number, label, function, required (1=always run)
+PHASES=(
+  "1|Foundation (Homebrew, Git, SSH, GPG, Xcode, CLI)|phase_1|1"
+  "2|Shell Configuration (Oh My Zsh, Starship, plugins, .zshrc)|phase_2|0"
+  "3|macOS System Preferences|phase_3|0"
+  "4|Development Tools (editors, terminals, Docker, mise)|phase_4|0"
+  "5|AI & LLM Development (Ollama, LM Studio, Open WebUI, Gemini)|phase_5|0"
+  "6|React Native Environment (SDK, emulators, CocoaPods)|phase_6|0"
+  "7|Cloud CLI Tools (AWS, Wrangler)|phase_7|0"
+  "8|Browsers (Chrome, Firefox)|phase_8|0"
+  "9|Productivity & Communication Apps (30+ apps)|phase_9|0"
+)
+
 echo ""
 echo "╔══════════════════════════════════════════════════════════════╗"
 echo "║          Mac Developer Environment Setup                    ║"
@@ -772,21 +785,52 @@ echo "║          Log: ~/mac-setup.log                               ║"
 echo "╚══════════════════════════════════════════════════════════════╝"
 echo ""
 
-# Phase 1 — Critical (abort on failure)
-echo "━━━ Phase 1: Foundation ━━━"
-phase_1
+# Determine which phases to run
+SELECTED_PHASES=""
 
-# Phases 2-9 — Non-critical (continue on failure)
-run_phase "Phase 2: Shell Configuration" phase_2
-run_phase "Phase 3: macOS System Preferences" phase_3
-run_phase "Phase 4: Development Tools" phase_4
-run_phase "Phase 5: AI & LLM Development" phase_5
-run_phase "Phase 6: React Native Environment" phase_6
-run_phase "Phase 7: Cloud CLI Tools" phase_7
-run_phase "Phase 8: Browsers" phase_8
-run_phase "Phase 9: Productivity & Communication Apps" phase_9
+if [[ "${1:-}" == "--interactive" || "${1:-}" == "-i" ]]; then
+  echo "Select phases to install (Phase 1 is always included):"
+  echo ""
+  for entry in "${PHASES[@]}"; do
+    IFS='|' read -r num label fn required <<< "$entry"
+    if [[ "$required" == "1" ]]; then
+      echo "  [$num] $label (required)"
+    else
+      echo "  [$num] $label"
+    fi
+  done
+  echo "  [A] All phases"
+  echo ""
+  read -rp "Enter phase numbers separated by spaces (e.g. '2 4 5 6'), or 'A' for all: " choices
 
-# Phase 11 — Validation
+  if [[ "${choices^^}" == "A" ]]; then
+    SELECTED_PHASES="1 2 3 4 5 6 7 8 9"
+  else
+    # Always include Phase 1
+    SELECTED_PHASES="1 $choices"
+  fi
+else
+  # Default: run everything
+  SELECTED_PHASES="1 2 3 4 5 6 7 8 9"
+fi
+
+# Execute selected phases
+for entry in "${PHASES[@]}"; do
+  IFS='|' read -r num label fn required <<< "$entry"
+  if [[ " $SELECTED_PHASES " == *" $num "* ]]; then
+    if [[ "$num" == "1" ]]; then
+      echo "━━━ Phase $num: $label ━━━"
+      "$fn"
+    else
+      run_phase "Phase $num: $label" "$fn"
+    fi
+  else
+    echo ""
+    echo "⏭  Skipping Phase $num: $label"
+  fi
+done
+
+# Phase 11 — Validation (always runs)
 phase_11
 
 echo ""

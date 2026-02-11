@@ -12,6 +12,33 @@ chmod +x setup.sh
 ./setup.sh
 ```
 
+### Interactive Mode
+
+Pick only the phases you want:
+
+```bash
+./setup.sh --interactive
+```
+
+This shows a menu:
+
+```
+  [1] Foundation (Homebrew, Git, SSH, GPG, Xcode, CLI) (required)
+  [2] Shell Configuration (Oh My Zsh, Starship, plugins, .zshrc)
+  [3] macOS System Preferences
+  [4] Development Tools (editors, terminals, Docker, mise)
+  [5] AI & LLM Development (Ollama, LM Studio, Open WebUI, Gemini)
+  [6] React Native Environment (SDK, emulators, CocoaPods)
+  [7] Cloud CLI Tools (AWS, Wrangler)
+  [8] Browsers (Chrome, Firefox)
+  [9] Productivity & Communication Apps (30+ apps)
+  [A] All phases
+
+Enter phase numbers separated by spaces (e.g. '2 4 5 6'), or 'A' for all:
+```
+
+Phase 1 always runs (everything else depends on it). Validation always runs at the end.
+
 ### Configuration (optional)
 
 Edit `setup.conf` before running to automate manual steps:
