@@ -920,82 +920,122 @@ phase_9() {
 
 phase_11() {
   echo ""
-  echo "=== Validation ==="
-  PASS_COUNT=0
-  FAIL_COUNT=0
+  echo "╔══════════════════════════════════════════════════════════════╗"
+  echo "║                    Validation Report                        ║"
+  echo "╚══════════════════════════════════════════════════════════════╝"
 
-  check_pass() { echo "✅ $1"; PASS_COUNT=$((PASS_COUNT + 1)); }
-  check_fail() { echo "❌ $1"; FAIL_COUNT=$((FAIL_COUNT + 1)); }
-  check_warn() { echo "⚠️  $1"; FAIL_COUNT=$((FAIL_COUNT + 1)); }
+  local -a INSTALLED=() FAILED=() WARNINGS=() MANUAL=()
 
-  # Foundation
-  command -v git    &>/dev/null && check_pass "git $(git --version 2>&1 | head -1)"          || check_fail "git missing"
-  command -v brew   &>/dev/null && check_pass "brew $(brew --version 2>&1 | head -1)"        || check_fail "brew missing"
-  command -v gpg    &>/dev/null && check_pass "gpg $(gpg --version 2>&1 | head -1)"          || check_fail "gpg missing"
+  check_cmd()  { command -v "$1" &>/dev/null && INSTALLED+=("$2") || FAILED+=("$2"); }
+  check_app()  { [[ -d "/Applications/${1}.app" ]] && INSTALLED+=("$1") || FAILED+=("$1"); }
+  check_file() { [[ -f "$1" ]] && INSTALLED+=("$2") || FAILED+=("$2"); }
+  check_dir()  { [[ -d "$1" ]] && INSTALLED+=("$2") || FAILED+=("$2"); }
 
-  # SSH
-  [[ -f ~/.ssh/id_ed25519 ]]     && check_pass "SSH key exists"       || check_fail "SSH key missing"
-  [[ -f ~/.ssh/config ]]         && check_pass "SSH config exists"    || check_fail "SSH config missing"
+  # --- Foundation ---
+  check_cmd git "git $(git --version 2>&1 | awk '{print $3}')"
+  check_cmd brew "Homebrew $(brew --version 2>&1 | head -1 | awk '{print $2}')"
+  check_cmd gpg "GPG"
+  check_file ~/.ssh/id_ed25519 "SSH key (Ed25519)"
+  check_file ~/.ssh/config "SSH config"
 
-  # Shell
-  [[ -d ~/.oh-my-zsh ]] && check_pass "Oh My Zsh" || check_fail "Oh My Zsh missing"
-  command -v starship &>/dev/null && check_pass "Starship" || check_fail "Starship missing"
+  # --- Shell ---
+  check_dir ~/.oh-my-zsh "Oh My Zsh"
+  check_cmd starship "Starship"
 
-  # Languages
-  command -v mise   &>/dev/null && check_pass "mise $(mise --version 2>&1)"         || check_fail "mise missing"
-  command -v node   &>/dev/null && check_pass "node $(node --version 2>&1)"         || check_fail "node missing"
-  command -v python &>/dev/null && check_pass "python $(python --version 2>&1)"     || check_fail "python missing"
-  command -v java   &>/dev/null && check_pass "java $(java -version 2>&1 | head -1)" || check_fail "java missing"
+  # --- Languages ---
+  check_cmd mise "mise"
+  check_cmd node "Node.js $(node --version 2>&1)"
+  check_cmd python "Python $(python --version 2>&1 | awk '{print $2}')"
+  check_cmd java "Java (Zulu 17)"
 
-  # Environment variables
-  [[ -n "${JAVA_HOME:-}" ]]    && check_pass "JAVA_HOME=$JAVA_HOME"       || check_fail "JAVA_HOME not set"
-  [[ -n "${ANDROID_HOME:-}" ]] && check_pass "ANDROID_HOME=$ANDROID_HOME" || check_fail "ANDROID_HOME not set"
+  # --- Environment ---
+  [[ -n "${JAVA_HOME:-}" ]] && INSTALLED+=("JAVA_HOME") || FAILED+=("JAVA_HOME not set")
+  [[ -n "${ANDROID_HOME:-}" ]] && INSTALLED+=("ANDROID_HOME") || FAILED+=("ANDROID_HOME not set")
 
-  # React Native
-  command -v watchman  &>/dev/null && check_pass "watchman"   || check_fail "watchman missing"
-  command -v pod       &>/dev/null && check_pass "cocoapods"  || check_fail "cocoapods missing"
-  command -v adb       &>/dev/null && check_pass "adb"        || check_fail "adb missing"
-  emulator -list-avds 2>/dev/null | grep -q . && check_pass "AVD found" || check_warn "no AVDs found"
-  xcrun simctl list devices 2>/dev/null | grep -q . && check_pass "iOS simulator" || check_warn "iOS simulator issue"
+  # --- React Native ---
+  check_cmd watchman "Watchman"
+  check_cmd pod "CocoaPods"
+  check_cmd adb "Android platform-tools"
+  emulator -list-avds 2>/dev/null | grep -q . && INSTALLED+=("Android AVD") || WARNINGS+=("Android AVD — launch Android Studio to create one")
+  xcrun simctl list devices 2>/dev/null | grep -q . && INSTALLED+=("iOS Simulator") || WARNINGS+=("iOS Simulator — run: xcodebuild -downloadPlatform iOS")
 
-  # Cloud CLIs
-  command -v aws      &>/dev/null && check_pass "aws cli"    || check_fail "aws cli missing"
-  command -v wrangler &>/dev/null && check_pass "wrangler"   || check_fail "wrangler missing"
+  # --- Cloud CLIs ---
+  check_cmd aws "AWS CLI"
+  check_cmd wrangler "Wrangler"
 
-  # AI & LLM
-  command -v ollama  &>/dev/null && check_pass "ollama"      || check_fail "ollama missing"
-  command -v gemini  &>/dev/null && check_pass "Gemini CLI"  || check_fail "gemini cli missing"
+  # --- AI & LLM ---
+  check_cmd ollama "Ollama"
+  check_cmd gemini "Gemini CLI"
 
-  # Container runtime
+  # --- Container runtime ---
   if [[ "$CONTAINER_RUNTIME" == "colima" ]]; then
-    command -v colima &>/dev/null && check_pass "colima" || check_fail "colima missing"
-    command -v docker &>/dev/null && check_pass "docker cli" || check_fail "docker cli missing"
+    check_cmd colima "Colima"
+    check_cmd docker "Docker CLI"
   elif [[ "$CONTAINER_RUNTIME" == "docker" ]]; then
-    [[ -d "/Applications/Docker.app" ]] && check_pass "Docker Desktop" || check_fail "Docker Desktop not found"
+    check_app "Docker"
   fi
 
   docker ps --filter "name=open-webui" --format '{{.Names}}' 2>/dev/null | grep -q open-webui \
-    && check_pass "Open WebUI (running)" || check_warn "Open WebUI container not running"
+    && INSTALLED+=("Open WebUI (localhost:3000)") || WARNINGS+=("Open WebUI — start runtime, then: docker start open-webui")
   docker ps --filter "name=dockhand" --format '{{.Names}}' 2>/dev/null | grep -q dockhand \
-    && check_pass "Dockhand (running on :3001)" || check_warn "Dockhand container not running"
+    && INSTALLED+=("Dockhand (localhost:3001)") || WARNINGS+=("Dockhand — start runtime, then: docker start dockhand")
 
-  # CLI utilities
+  # --- CLI utilities ---
   for cmd in jq tree gh eza zoxide bat htop wget tldr; do
-    command -v "$cmd" &>/dev/null && check_pass "$cmd" || check_fail "$cmd missing"
+    check_cmd "$cmd" "$cmd"
   done
 
-  # Apps
+  # --- Apps ---
   for app in "Google Chrome" "Firefox" "Visual Studio Code" "Cursor" "Zed" "Android Studio" \
              "iTerm" "Ghostty" "LM Studio" "Moonlock" "DPN" "AdGuard" "AdGuard VPN" \
              "VPN Unlimited" "KeepSolid SmartDNS" "Microsoft Word" "Telegram" "WhatsApp" "Discord" \
              "Postman" "Raycast" "Rectangle" "1Password" "Notion" "Reactotron" \
              "Spotify" "VLC" "IINA" "AppCleaner" "The Unarchiver" "Keka" \
              "AltTab" "Stats" "KeepingYouAwake" "Obsidian" "zoom.us"; do
-    [[ -d "/Applications/${app}.app" ]] && check_pass "$app" || check_fail "$app not found"
+    check_app "$app"
   done
 
+  # --- Manual steps (conditional) ---
+  [[ -z "$GIT_USER_NAME" ]] && MANUAL+=("Set git identity: git config --global user.name / user.email")
+  [[ -z "$GITHUB_TOKEN" ]] && MANUAL+=("Authenticate GitHub CLI: gh auth login")
+  MANUAL+=("Add SSH key to GitHub: cat ~/.ssh/id_ed25519.pub → github.com/settings/keys")
+  [[ "$ENABLE_GPG_SIGNING" != "true" ]] && MANUAL+=("Generate GPG key: gpg --full-generate-key → add to GitHub")
+  MANUAL+=("Launch Android Studio → complete first-run setup wizard")
+  MANUAL+=("Configure Continue.dev in VS Code → select Local → verify Ollama models")
+  MANUAL+=("Configure Cline in VS Code → API Provider → Ollama → select model")
+  MANUAL+=("Authenticate Gemini CLI: run 'gemini' and sign in with Google")
+  [[ "$INSTALL_OPEN_WEBUI" == "true" ]] && MANUAL+=("Create Open WebUI account: http://localhost:3000")
+  [[ "$INSTALL_MOONLOCK" == "true" ]] && MANUAL+=("Launch Moonlock → grant permissions (Full Disk Access) → activate license")
+  MANUAL+=("Sign into apps: Chrome, Office, 1Password, Spotify, Zoom, Telegram, WhatsApp, Discord")
+  MANUAL+=("Install browser extensions: uBlock Origin, 1Password")
+  [[ "$INSTALL_GOOGLE_DRIVE" == "true" ]] && MANUAL+=("Authorize Google Drive")
+
+  # --- Print report ---
   echo ""
-  echo "=== Results: $PASS_COUNT passed, $FAIL_COUNT failed ==="
+  echo "━━━ ✅ Installed (${#INSTALLED[@]}) ━━━"
+  for item in "${INSTALLED[@]}"; do echo "  ✅ $item"; done
+
+  if [[ ${#FAILED[@]} -gt 0 ]]; then
+    echo ""
+    echo "━━━ ❌ Failed (${#FAILED[@]}) ━━━"
+    for item in "${FAILED[@]}"; do echo "  ❌ $item"; done
+  fi
+
+  if [[ ${#WARNINGS[@]} -gt 0 ]]; then
+    echo ""
+    echo "━━━ ⚠️  Needs Attention (${#WARNINGS[@]}) ━━━"
+    for item in "${WARNINGS[@]}"; do echo "  ⚠️  $item"; done
+  fi
+
+  echo ""
+  echo "━━━ 📋 Manual Steps Required (${#MANUAL[@]}) ━━━"
+  local i=1
+  for item in "${MANUAL[@]}"; do echo "  $i. $item"; i=$((i + 1)); done
+
+  echo ""
+  echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+  echo "  Total: ${#INSTALLED[@]} installed, ${#FAILED[@]} failed, ${#WARNINGS[@]} warnings, ${#MANUAL[@]} manual steps"
+  echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
 }
 
 # =============================================================================
@@ -1123,17 +1163,5 @@ SETUP_END_TIME=$(date +%s)
 ELAPSED=$(( SETUP_END_TIME - SETUP_START_TIME ))
 ELAPSED_MIN=$(( ELAPSED / 60 ))
 ELAPSED_SEC=$(( ELAPSED % 60 ))
-echo "=== Setup complete at $(date) (${ELAPSED_MIN}m ${ELAPSED_SEC}s) ==="
-echo "=== Log saved to $LOG_FILE ==="
-echo ""
-echo "📋 Post-setup manual steps:"
-[[ -z "$GIT_USER_NAME" ]] && echo "   • git config --global user.name / user.email"
-[[ -z "$GITHUB_TOKEN" ]] && echo "   • gh auth login"
-echo "   • Add SSH key to GitHub: cat ~/.ssh/id_ed25519.pub"
-[[ "$ENABLE_GPG_SIGNING" != "true" ]] && echo "   • Generate GPG key: gpg --full-generate-key"
-echo "   • Launch Android Studio → complete setup wizard"
-echo "   • Configure Continue.dev + Cline → Ollama in VS Code"
-echo "   • Authenticate Gemini CLI: gemini"
-echo "   • Create Open WebUI account: http://localhost:3000"
-echo "   • Launch Moonlock → grant permissions → activate license"
-echo "   • Sign into apps (Chrome, Office, 1Password, Spotify, etc.)"
+echo "🎉 Setup complete at $(date) (${ELAPSED_MIN}m ${ELAPSED_SEC}s)"
+echo "📄 Full log saved to $LOG_FILE"
