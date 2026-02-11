@@ -66,9 +66,9 @@ INSTALL_DISCORD="false"
 INSTALL_SPOTIFY="false"
 INSTALL_LM_STUDIO="false"
 
-# Dependencies are documented — e.g. Open WebUI needs Docker
-INSTALL_DOCKER="true"              # required by: Open WebUI
-INSTALL_OPEN_WEBUI="true"          # depends on: Docker, Ollama
+# Dependencies are documented — e.g. Open WebUI needs a container runtime
+CONTAINER_RUNTIME="docker"         # docker | colima | none
+INSTALL_OPEN_WEBUI="true"          # depends on: container runtime, Ollama
 ```
 
 See `setup.conf.example` for the full list with dependency notes.
@@ -197,9 +197,17 @@ Restarts Finder, Dock, and SystemUIServer to apply changes immediately.
 
 Both get Nerd Font configured automatically. Use whichever you prefer.
 
-#### Docker
+#### Container Runtime
 
-[Docker Desktop](https://www.docker.com/products/docker-desktop/) — required for Open WebUI and general container workflows.
+Configurable via `CONTAINER_RUNTIME` in `setup.conf`:
+
+| Option | What it installs | License |
+|--------|-----------------|---------|
+| `docker` (default) | [Docker Desktop](https://www.docker.com/products/docker-desktop/) | Free for personal use / <250 employees |
+| `colima` | [Colima](https://github.com/abiosoft/colima) + Docker CLI | MIT — fully free, no restrictions |
+| `none` | Nothing | — |
+
+Both provide the same `docker` CLI. Open WebUI and any Docker Compose workflows work with either. Colima is lighter on resources and has no licensing concerns.
 
 #### mise + Language Runtimes
 
@@ -308,7 +316,7 @@ Runs automatically at the end. Checks every tool, environment variable, and app 
 |---------|----------|
 | Xcode install fails | Sign into the Mac App Store first, then re-run the script |
 | `sdkmanager` not found | Launch Android Studio once to complete the setup wizard, then re-run |
-| Docker commands fail | Docker Desktop needs to be launched once after install; the script waits up to 60s |
+| Docker commands fail | Docker Desktop: launch once after install. Colima: run `colima start`. The script waits up to 60s |
 | Ollama model pull fails | Run `ollama serve` then `ollama pull qwen2.5-coder:7b` manually |
 | Open WebUI won't start | Ensure Docker is running: `docker start open-webui` |
 | VS Code extensions not installed | Launch VS Code once, then run `code --install-extension <id>` manually |

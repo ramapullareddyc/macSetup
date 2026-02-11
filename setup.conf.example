@@ -37,7 +37,7 @@ INSTALL_ZED="true"                # Zed — GPU-accelerated editor
 INSTALL_ANDROID_STUDIO="true"     # Android Studio — required by: React Native Android (Phase 6)
 INSTALL_ITERM2="true"             # iTerm2 — feature-rich terminal
 INSTALL_GHOSTTY="true"            # Ghostty — GPU-accelerated terminal
-INSTALL_DOCKER="true"             # Docker Desktop — required by: Open WebUI (Phase 5)
+CONTAINER_RUNTIME="docker"         # docker | colima | none — Colima is fully open source (MIT), Docker Desktop is free for personal/<250 employees
 INSTALL_MISE="true"               # mise runtimes (Node, Python, Java) — required by: Phase 5, 6, 7
 
 # --- Phase 5: AI & LLM Development ---

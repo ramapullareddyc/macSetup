@@ -58,7 +58,8 @@ OLLAMA_MODEL="${OLLAMA_MODEL:-qwen2.5-coder:7b}"
 
 # Default all app toggles to "true" (install everything unless overridden by config)
 : "${INSTALL_VSCODE:=true}" "${INSTALL_CURSOR:=true}" "${INSTALL_ZED:=true}" "${INSTALL_ANDROID_STUDIO:=true}"
-: "${INSTALL_ITERM2:=true}" "${INSTALL_GHOSTTY:=true}" "${INSTALL_DOCKER:=true}" "${INSTALL_MISE:=true}"
+: "${INSTALL_ITERM2:=true}" "${INSTALL_GHOSTTY:=true}" "${INSTALL_MISE:=true}"
+: "${CONTAINER_RUNTIME:=docker}"  # docker | colima | none
 : "${INSTALL_OLLAMA:=true}" "${INSTALL_LM_STUDIO:=true}" "${INSTALL_OPEN_WEBUI:=true}" "${INSTALL_GEMINI_CLI:=true}"
 : "${INSTALL_WATCHMAN:=true}" "${INSTALL_COCOAPODS:=true}" "${INSTALL_EAS_CLI:=true}"
 : "${INSTALL_ANDROID_SDK:=true}" "${INSTALL_IOS_SIMULATOR:=true}" "${INSTALL_REACTOTRON:=true}"
@@ -560,9 +561,16 @@ phase_4_terminals() {
 }
 
 phase_4_docker() {
-  [[ "$INSTALL_DOCKER" == "true" ]] || { echo "⏭  Skipping Docker"; return 0; }
-  brew install --cask docker
-  open -a Docker 2>/dev/null || true
+  [[ "$CONTAINER_RUNTIME" == "none" ]] && { echo "⏭  Skipping container runtime (CONTAINER_RUNTIME=none)"; return 0; }
+  if [[ "$CONTAINER_RUNTIME" == "colima" ]]; then
+    command -v docker &>/dev/null && echo "✅ Docker CLI already installed" || brew install docker
+    command -v colima &>/dev/null && echo "✅ Colima already installed" || brew install colima
+    brew install docker-compose docker-credential-helper 2>/dev/null || true
+    colima status &>/dev/null || colima start --cpu 4 --memory 4 --disk 60
+  else
+    brew install --cask docker
+    open -a Docker 2>/dev/null || true
+  fi
 }
 
 phase_4_mise() {
@@ -633,8 +641,8 @@ phase_5_lm_studio() {
 
 phase_5_open_webui() {
   [[ "$INSTALL_OPEN_WEBUI" == "true" ]] || { echo "⏭  Skipping Open WebUI"; return 0; }
-  if [[ "$INSTALL_DOCKER" != "true" ]]; then
-    echo "⚠️  Skipping Open WebUI — requires Docker (INSTALL_DOCKER=true)"
+  if [[ "$CONTAINER_RUNTIME" == "none" ]]; then
+    echo "⚠️  Skipping Open WebUI — requires a container runtime (CONTAINER_RUNTIME=docker|colima)"
     return 0
   fi
   # Wait for Docker daemon
@@ -644,7 +652,7 @@ phase_5_open_webui() {
     echo "Waiting for Docker daemon... ($i/30)" && sleep 2
   done
   if [[ "$docker_ready" != "true" ]]; then
-    echo "⚠️  Docker daemon not ready after 60s — skipping Open WebUI. Start Docker Desktop and run: docker start open-webui"
+    echo "⚠️  Docker daemon not ready after 60s — skipping Open WebUI. Start your container runtime and run: docker start open-webui"
     return
   fi
 
@@ -877,6 +885,15 @@ phase_11() {
   # AI & LLM
   command -v ollama  &>/dev/null && check_pass "ollama"      || check_fail "ollama missing"
   command -v gemini  &>/dev/null && check_pass "Gemini CLI"  || check_fail "gemini cli missing"
+
+  # Container runtime
+  if [[ "$CONTAINER_RUNTIME" == "colima" ]]; then
+    command -v colima &>/dev/null && check_pass "colima" || check_fail "colima missing"
+    command -v docker &>/dev/null && check_pass "docker cli" || check_fail "docker cli missing"
+  elif [[ "$CONTAINER_RUNTIME" == "docker" ]]; then
+    [[ -d "/Applications/Docker.app" ]] && check_pass "Docker Desktop" || check_fail "Docker Desktop not found"
+  fi
+
   docker ps --filter "name=open-webui" --format '{{.Names}}' 2>/dev/null | grep -q open-webui \
     && check_pass "Open WebUI (running)" || check_warn "Open WebUI container not running"
 
@@ -887,7 +904,7 @@ phase_11() {
 
   # Apps
   for app in "Google Chrome" "Firefox" "Visual Studio Code" "Cursor" "Zed" "Android Studio" \
-             "iTerm" "Ghostty" "Docker" "LM Studio" "Moonlock" "DPN" "AdGuard" "AdGuard VPN" \
+             "iTerm" "Ghostty" "LM Studio" "Moonlock" "DPN" "AdGuard" "AdGuard VPN" \
              "VPN Unlimited" "KeepSolid SmartDNS" "Microsoft Word" "Telegram" "WhatsApp" "Discord" \
              "Postman" "Raycast" "Rectangle" "1Password" "Notion" "Reactotron" \
              "Spotify" "VLC" "IINA" "AppCleaner" "The Unarchiver" "Keka" \
