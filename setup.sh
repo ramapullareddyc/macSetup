@@ -140,9 +140,58 @@ run_sub_phases() {
 }
 
 # Install a cask/formula only if its toggle is "true", with retry on failure
+# Map brew cask names to /Applications app names for skip-if-installed checks
+declare -A CASK_APP_MAP=(
+  [visual-studio-code]="Visual Studio Code"
+  [cursor]="Cursor"
+  [zed]="Zed"
+  [android-studio]="Android Studio"
+  [iterm2]="iTerm"
+  [ghostty]="Ghostty"
+  [docker]="Docker"
+  [lm-studio]="LM Studio"
+  [reactotron]="Reactotron"
+  [google-chrome]="Google Chrome"
+  [firefox]="Firefox"
+  [microsoft-office]="Microsoft Word"
+  [notion]="Notion"
+  [obsidian]="Obsidian"
+  [zoom]="zoom.us"
+  [telegram]="Telegram"
+  [whatsapp]="WhatsApp"
+  [discord]="Discord"
+  [google-drive]="Google Drive"
+  [postman]="Postman"
+  [raycast]="Raycast"
+  [rectangle]="Rectangle"
+  [1password]="1Password"
+  [spotify]="Spotify"
+  [vlc]="VLC"
+  [iina]="IINA"
+  [appcleaner]="AppCleaner"
+  [the-unarchiver]="The Unarchiver"
+  [keka]="Keka"
+  [alt-tab]="AltTab"
+  [stats]="Stats"
+  [keepingyouawake]="KeepingYouAwake"
+  [adguard]="AdGuard"
+  [adguard-vpn]="AdGuard VPN"
+)
+
 install_if() {
   local toggle="$1"; shift
   [[ "$toggle" == "true" ]] || { echo "⏭  Skipping: $*"; return 0; }
+
+  # For brew cask installs, check /Applications first to avoid re-downloading
+  if [[ "$1 $2 $3" == "brew install --cask" ]]; then
+    local cask="$4"
+    local app_name="${CASK_APP_MAP[$cask]:-}"
+    if [[ -n "$app_name" && -d "/Applications/${app_name}.app" ]]; then
+      echo "✅ $app_name already installed"
+      return 0
+    fi
+  fi
+
   local attempt
   for attempt in 1 2 3; do
     "$@" && return 0
