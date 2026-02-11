@@ -91,13 +91,34 @@ Applies developer-friendly defaults via `defaults write`:
 | Finder: show hidden files | ✅ |
 | Finder: show path bar | ✅ |
 | Finder: show all extensions | ✅ |
+| Finder: default to list view | ✅ |
+| Finder: search current folder | ✅ (not entire Mac) |
+| Finder: full path in title bar | ✅ |
+| Finder: small sidebar icons | ✅ |
+| Finder: spring-loaded folders | ✅ (fast delay) |
 | Keyboard: key repeat speed | Fast (2) |
 | Keyboard: initial repeat delay | Short (15) |
+| Input: auto-correct | ❌ Off |
+| Input: smart quotes | ❌ Off |
+| Input: smart dashes | ❌ Off |
+| Input: auto-capitalize | ❌ Off |
+| Input: period with double-space | ❌ Off |
 | Dock: auto-hide | ✅ (no delay) |
+| Dock: icon size | 48px |
+| Dock: minimize to app icon | ✅ |
+| Dock: show recent apps | ❌ Off |
+| Mission Control: group by app | ✅ |
+| Mission Control: rearrange Spaces | ❌ Off |
+| Spaces: span displays | ❌ Off (independent per display) |
+| Hot corners | Bottom-left: Mission Control, Bottom-right: Desktop |
 | Trackpad: tap to click | ✅ |
 | Screenshots | Saved to `~/Screenshots` instead of Desktop |
 | .DS_Store | Disabled on network and USB volumes |
 | Battery percentage | Shown in menu bar |
+| Password after sleep | Immediately |
+| Firewall | ✅ On |
+| Save/Print dialogs | Expanded by default |
+| Crash Reporter | Silent (no dialog) |
 
 Restarts Finder, Dock, and SystemUIServer to apply changes immediately.
 

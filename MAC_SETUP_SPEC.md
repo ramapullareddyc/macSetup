@@ -355,22 +355,61 @@ If no config is provided, Starship works out of the box with sensible defaults. 
 
 ## Phase 3: macOS System Preferences
 
-Common developer tweaks applied via `defaults write`:
+Developer-friendly defaults applied via `defaults write`:
 
 ```bash
-# Finder
+# Finder — visibility
 defaults write com.apple.finder AppleShowAllFiles -bool true
 defaults write com.apple.finder ShowPathbar -bool true
 defaults write NSGlobalDomain AppleShowAllExtensions -bool true
+
+# Finder — list view by default
+defaults write com.apple.finder FXPreferredViewStyle -string "Nlsv"
+
+# Finder — search current folder by default
+defaults write com.apple.finder FXDefaultSearchScope -string "SCcf"
+
+# Finder — show full path in title bar
+defaults write com.apple.finder _FXShowPosixPathInTitle -bool true
+
+# Finder — small sidebar icons
+defaults write NSGlobalDomain NSTableViewDefaultSizeMode -int 1
+
+# Finder — spring-loaded folders (faster delay)
+defaults write NSGlobalDomain com.apple.springing.enabled -bool true
+defaults write NSGlobalDomain com.apple.springing.delay -float 0.3
 
 # Keyboard
 defaults write NSGlobalDomain KeyRepeat -int 2
 defaults write NSGlobalDomain InitialKeyRepeat -int 15
 
+# Input — disable auto-correct, smart quotes, smart dashes, auto-capitalize, period shortcut
+defaults write NSGlobalDomain NSAutomaticSpellingCorrectionEnabled -bool false
+defaults write NSGlobalDomain NSAutomaticQuoteSubstitutionEnabled -bool false
+defaults write NSGlobalDomain NSAutomaticDashSubstitutionEnabled -bool false
+defaults write NSGlobalDomain NSAutomaticCapitalizationEnabled -bool false
+defaults write NSGlobalDomain NSAutomaticPeriodSubstitutionEnabled -bool false
+
 # Dock
 defaults write com.apple.dock autohide -bool true
 defaults write com.apple.dock autohide-delay -float 0
 defaults write com.apple.dock autohide-time-modifier -float 0.3
+defaults write com.apple.dock tilesize -int 48
+defaults write com.apple.dock minimize-to-application -bool true
+defaults write com.apple.dock show-recents -bool false
+
+# Mission Control — group windows by app, don't rearrange Spaces
+defaults write com.apple.dock expose-group-apps -bool true
+defaults write com.apple.dock mru-spaces -bool false
+
+# Spaces — independent spaces per display
+defaults write com.apple.spaces spans-displays -bool false
+
+# Hot corners — bottom-left: Mission Control, bottom-right: Desktop
+defaults write com.apple.dock wvous-bl-corner -int 2
+defaults write com.apple.dock wvous-bl-modifier -int 0
+defaults write com.apple.dock wvous-br-corner -int 4
+defaults write com.apple.dock wvous-br-modifier -int 0
 
 # Trackpad — enable tap to click
 defaults write com.apple.AppleMultitouchTrackpad Clicking -bool true
@@ -386,6 +425,22 @@ defaults write com.apple.desktopservices DSDontWriteUSBStores -bool true
 
 # Battery — show percentage in menu bar
 defaults write com.apple.menuextra.battery ShowPercent -string "YES"
+
+# Security — require password immediately after sleep
+defaults write com.apple.screensaver askForPassword -int 1
+defaults write com.apple.screensaver askForPasswordDelay -int 0
+
+# Security — enable firewall
+sudo /usr/libexec/ApplicationFirewall/socketfilterfw --setglobalstate on 2>/dev/null || true
+
+# Dialogs — expand save and print panels by default
+defaults write NSGlobalDomain NSNavPanelExpandedStateForSaveMode -bool true
+defaults write NSGlobalDomain NSNavPanelExpandedStateForSaveMode2 -bool true
+defaults write NSGlobalDomain PMPrintingExpandedStateForPrint -bool true
+defaults write NSGlobalDomain PMPrintingExpandedStateForPrint2 -bool true
+
+# Disable Crash Reporter dialog (reports sent silently)
+defaults write com.apple.CrashReporter DialogType -string "none"
 
 # Restart affected services
 killall Finder
