@@ -348,7 +348,10 @@ phase_1_cli_utils() {
     if gh auth status &>/dev/null; then
       echo "✅ GitHub CLI already authenticated"
     else
-      echo "$GITHUB_TOKEN" | gh auth login --with-token && echo "✅ GitHub CLI authenticated" || echo "⚠️  GitHub CLI auth failed — run 'gh auth login' manually"
+      echo "$GITHUB_TOKEN" | gh auth login --with-token && {
+        echo "✅ GitHub CLI authenticated"
+        gh auth setup-git 2>/dev/null || true
+      } || echo "⚠️  GitHub CLI auth failed — run 'gh auth login' manually"
     fi
   fi
 }
