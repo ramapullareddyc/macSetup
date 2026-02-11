@@ -156,6 +156,11 @@ declare -A CASK_APP_MAP=(
   [google-chrome]="Google Chrome"
   [firefox]="Firefox"
   [notion]="Notion"
+  [microsoft-word]="Microsoft Word"
+  [microsoft-excel]="Microsoft Excel"
+  [microsoft-powerpoint]="Microsoft PowerPoint"
+  [microsoft-outlook]="Microsoft Outlook"
+  [microsoft-onenote]="Microsoft OneNote"
   [obsidian]="Obsidian"
   [zoom]="zoom.us"
   [telegram]="Telegram"
@@ -851,18 +856,13 @@ phase_8() {
 
 phase_9() {
   # Office & Productivity
-  # Office & Productivity (Mac App Store — individual apps, free to download)
-  # Note: mas requires App Store sign-in. If installs fail with "no downloads",
-  # sign into App Store.app first, then re-run.
+  # Office (Homebrew casks — direct download from Microsoft, no App Store account needed)
   if [[ "$INSTALL_MICROSOFT_OFFICE" == "true" ]]; then
-    if ! mas account &>/dev/null; then
-      echo "⚠️  Not signed into App Store — Office apps may fail. Sign in and re-run."
-    fi
-    mas install 462054704 2>&1 | grep -v "not indexed" || echo "⚠️  Microsoft Word install failed"
-    mas install 462058435 2>&1 | grep -v "not indexed" || echo "⚠️  Microsoft Excel install failed"
-    mas install 462062816 2>&1 | grep -v "not indexed" || echo "⚠️  Microsoft PowerPoint install failed"
-    mas install 985367838 2>&1 | grep -v "not indexed" || echo "⚠️  Microsoft Outlook install failed"
-    mas install 784801555 2>&1 | grep -v "not indexed" || echo "⚠️  Microsoft OneNote install failed"
+    install_if true brew install --cask microsoft-word
+    install_if true brew install --cask microsoft-excel
+    install_if true brew install --cask microsoft-powerpoint
+    install_if true brew install --cask microsoft-outlook
+    install_if true brew install --cask microsoft-onenote
   else
     echo "⏭  Skipping Microsoft Office"
   fi
