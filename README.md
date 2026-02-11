@@ -7,9 +7,25 @@ Automated provisioning of a Mac laptop for cross-platform React Native developme
 ```bash
 git clone https://github.com/ramapullareddyc/macSetup.git
 cd macSetup
+cp setup.conf.example setup.conf   # edit with your details
 chmod +x setup.sh
 ./setup.sh
 ```
+
+### Configuration (optional)
+
+Edit `setup.conf` before running to automate manual steps:
+
+```bash
+# setup.conf
+GIT_USER_NAME="Your Name"
+GIT_USER_EMAIL="you@example.com"
+GITHUB_TOKEN="ghp_xxxx"           # auto-authenticates gh CLI
+ENABLE_GPG_SIGNING="true"         # generates GPG key + enables signed commits
+OLLAMA_MODEL="qwen2.5-coder:7b"  # set to "" to skip model download
+```
+
+Any value left blank becomes a manual post-setup task. The file is gitignored (contains secrets) — `setup.conf.example` is the committed template.
 
 The script is **idempotent** — safe to re-run at any time. All output is logged to `~/mac-setup.log`.
 
@@ -254,6 +270,7 @@ After the script completes, it prints a checklist. The full list:
 | File | Purpose |
 |------|---------|
 | `setup.sh` | Main setup script (629 lines) |
+| `setup.conf.example` | Configuration template — copy to `setup.conf` and edit |
 | `Brewfile` | Standalone `brew bundle --file=Brewfile` alternative |
 | `MAC_SETUP_SPEC.md` | Detailed spec with rationale, links, and implementation notes |
 | `dotfiles/starship.toml` | Starship prompt configuration |

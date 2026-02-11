@@ -1,0 +1,25 @@
+# =============================================================================
+# setup.conf — User configuration for setup.sh
+# Fill in your details before running ./setup.sh
+# Leave blank to skip that step (it becomes a manual post-setup task)
+# =============================================================================
+
+# --- Identity ---
+GIT_USER_NAME=""
+GIT_USER_EMAIL=""
+
+# --- GitHub ---
+# Generate a token at https://github.com/settings/tokens (scopes: repo, read:org, workflow)
+# Leave blank to authenticate interactively after setup via: gh auth login
+GITHUB_TOKEN=""
+
+# --- GPG Commit Signing ---
+# Set to "true" to auto-generate a GPG key and enable signed commits
+# Uses GIT_USER_NAME and GIT_USER_EMAIL above
+ENABLE_GPG_SIGNING="false"
+
+# --- Ollama ---
+# Model to pull during setup. Set to "" to skip model download.
+# Popular options: qwen2.5-coder:7b, llama3.1:8b, deepseek-coder-v2:16b, codellama:13b
+# Size guide: 7B ≈ 8GB RAM, 14B ≈ 16GB, 70B ≈ 48GB
+OLLAMA_MODEL="qwen2.5-coder:7b"

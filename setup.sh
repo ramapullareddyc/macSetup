@@ -11,6 +11,23 @@ exec > >(tee -a "$LOG_FILE") 2>&1
 echo "=== Mac Setup started at $(date) ==="
 
 # ---------------------------------------------------------------------------
+# Load user config
+# ---------------------------------------------------------------------------
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+CONF_FILE="$SCRIPT_DIR/setup.conf"
+if [[ -f "$CONF_FILE" ]]; then
+  echo "📄 Loading config from $CONF_FILE"
+  source "$CONF_FILE"
+else
+  echo "ℹ️  No setup.conf found — using defaults (manual steps will remain)"
+fi
+GIT_USER_NAME="${GIT_USER_NAME:-}"
+GIT_USER_EMAIL="${GIT_USER_EMAIL:-}"
+GITHUB_TOKEN="${GITHUB_TOKEN:-}"
+ENABLE_GPG_SIGNING="${ENABLE_GPG_SIGNING:-false}"
+OLLAMA_MODEL="${OLLAMA_MODEL:-qwen2.5-coder:7b}"
+
+# ---------------------------------------------------------------------------
 # Helpers
 # ---------------------------------------------------------------------------
 run_phase() {
@@ -52,6 +69,14 @@ phase_1_git() {
   git config --global init.defaultBranch main
   git config --global pull.rebase true
   git config --global core.editor "code --wait"
+  if [[ -n "$GIT_USER_NAME" ]]; then
+    git config --global user.name "$GIT_USER_NAME"
+    echo "✅ Git user.name set to: $GIT_USER_NAME"
+  fi
+  if [[ -n "$GIT_USER_EMAIL" ]]; then
+    git config --global user.email "$GIT_USER_EMAIL"
+    echo "✅ Git user.email set to: $GIT_USER_EMAIL"
+  fi
 }
 
 phase_1_ssh() {
@@ -59,7 +84,7 @@ phase_1_ssh() {
   chmod 700 ~/.ssh
 
   if [[ ! -f ~/.ssh/id_ed25519 ]]; then
-    ssh-keygen -t ed25519 -C "your_email@example.com" -f ~/.ssh/id_ed25519 -N ""
+    ssh-keygen -t ed25519 -C "${GIT_USER_EMAIL:-mac-setup}" -f ~/.ssh/id_ed25519 -N ""
     chmod 600 ~/.ssh/id_ed25519
     chmod 644 ~/.ssh/id_ed25519.pub
   else
@@ -89,6 +114,37 @@ phase_1_gpg() {
   chmod 700 ~/.gnupg
   grep -q "pinentry-program" ~/.gnupg/gpg-agent.conf 2>/dev/null || \
     echo "pinentry-program $(brew --prefix)/bin/pinentry-mac" >> ~/.gnupg/gpg-agent.conf
+
+  # Auto-generate GPG key and enable signing if configured
+  if [[ "$ENABLE_GPG_SIGNING" == "true" && -n "$GIT_USER_NAME" && -n "$GIT_USER_EMAIL" ]]; then
+    if ! gpg --list-secret-keys "$GIT_USER_EMAIL" &>/dev/null; then
+      gpg --batch --gen-key <<GPGEOF
+%no-protection
+Key-Type: RSA
+Key-Length: 4096
+Subkey-Type: RSA
+Subkey-Length: 4096
+Name-Real: $GIT_USER_NAME
+Name-Email: $GIT_USER_EMAIL
+Expire-Date: 0
+GPGEOF
+      echo "✅ GPG key generated for $GIT_USER_EMAIL"
+    else
+      echo "✅ GPG key already exists for $GIT_USER_EMAIL"
+    fi
+    GPG_KEY_ID=$(gpg --list-secret-keys --keyid-format=long "$GIT_USER_EMAIL" 2>/dev/null | grep sec | head -1 | awk '{print $2}' | cut -d'/' -f2)
+    if [[ -n "$GPG_KEY_ID" ]]; then
+      git config --global user.signingkey "$GPG_KEY_ID"
+      git config --global commit.gpgsign true
+      git config --global gpg.program "$(which gpg)"
+      echo "✅ Git commit signing enabled with key $GPG_KEY_ID"
+      echo ""
+      echo "📋 Add this GPG public key to GitHub (https://github.com/settings/keys):"
+      echo "---"
+      gpg --armor --export "$GPG_KEY_ID"
+      echo "---"
+    fi
+  fi
 }
 
 phase_1_xcode() {
@@ -103,6 +159,13 @@ phase_1_xcode() {
 phase_1_cli_utils() {
   brew install jq tree gh eza zoxide bat htop wget tldr
   tldr --update 2>/dev/null || true
+
+  # Authenticate GitHub CLI if token provided
+  if [[ -n "$GITHUB_TOKEN" ]]; then
+    echo "$GITHUB_TOKEN" | gh auth login --with-token 2>/dev/null \
+      && echo "✅ GitHub CLI authenticated" \
+      || echo "⚠️  GitHub CLI auth failed — run 'gh auth login' manually"
+  fi
 }
 
 phase_1() {
@@ -357,6 +420,11 @@ phase_4() {
 phase_5_ollama() {
   brew install ollama
 
+  if [[ -z "$OLLAMA_MODEL" ]]; then
+    echo "ℹ️  OLLAMA_MODEL is empty — skipping model download"
+    return
+  fi
+
   # Start Ollama and wait for readiness
   ollama serve &>/dev/null &
   local OLLAMA_PID=$!
@@ -365,7 +433,7 @@ phase_5_ollama() {
     sleep 1
   done
 
-  ollama pull qwen2.5-coder:7b || echo "⚠️  Ollama model pull failed — pull manually: ollama pull qwen2.5-coder:7b"
+  ollama pull "$OLLAMA_MODEL" || echo "⚠️  Ollama model pull failed — pull manually: ollama pull $OLLAMA_MODEL"
 
   kill $OLLAMA_PID 2>/dev/null || true
 }
@@ -617,10 +685,10 @@ echo "=== Setup complete at $(date) ==="
 echo "=== Log saved to $LOG_FILE ==="
 echo ""
 echo "📋 Post-setup manual steps:"
-echo "   • git config --global user.name / user.email"
-echo "   • gh auth login"
+[[ -z "$GIT_USER_NAME" ]] && echo "   • git config --global user.name / user.email"
+[[ -z "$GITHUB_TOKEN" ]] && echo "   • gh auth login"
 echo "   • Add SSH key to GitHub: cat ~/.ssh/id_ed25519.pub"
-echo "   • Generate GPG key: gpg --full-generate-key"
+[[ "$ENABLE_GPG_SIGNING" != "true" ]] && echo "   • Generate GPG key: gpg --full-generate-key"
 echo "   • Launch Android Studio → complete setup wizard"
 echo "   • Configure Continue.dev + Cline → Ollama in VS Code"
 echo "   • Authenticate Gemini CLI: gemini"
