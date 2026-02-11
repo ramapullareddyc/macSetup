@@ -94,7 +94,7 @@ fi
 wait_for_network() {
   local attempt=0 max_auto=5
   while ! curl -sfm 3 https://github.com &>/dev/null; do
-    ((attempt++))
+    attempt=$((attempt + 1))
     if [[ $attempt -le $max_auto ]]; then
       echo "⏳ No network connection (attempt $attempt/$max_auto) — retrying in 5s..."
       sleep 5
@@ -924,9 +924,9 @@ phase_11() {
   PASS_COUNT=0
   FAIL_COUNT=0
 
-  check_pass() { echo "✅ $1"; ((PASS_COUNT++)); }
-  check_fail() { echo "❌ $1"; ((FAIL_COUNT++)); }
-  check_warn() { echo "⚠️  $1"; ((FAIL_COUNT++)); }
+  check_pass() { echo "✅ $1"; PASS_COUNT=$((PASS_COUNT + 1)); }
+  check_fail() { echo "❌ $1"; FAIL_COUNT=$((FAIL_COUNT + 1)); }
+  check_warn() { echo "⚠️  $1"; FAIL_COUNT=$((FAIL_COUNT + 1)); }
 
   # Foundation
   command -v git    &>/dev/null && check_pass "git $(git --version 2>&1 | head -1)"          || check_fail "git missing"
