@@ -78,10 +78,31 @@ else
   BREW_PREFIX="/usr/local"
 fi
 
+# Wait for network connectivity. Retries automatically, prompts user after timeout.
+wait_for_network() {
+  local attempt=0 max_auto=5
+  while ! curl -sfm 3 https://github.com &>/dev/null; do
+    ((attempt++))
+    if [[ $attempt -le $max_auto ]]; then
+      echo "⏳ No network connection (attempt $attempt/$max_auto) — retrying in 5s..."
+      sleep 5
+    else
+      echo ""
+      echo "❌ Network still unavailable after $max_auto attempts."
+      read -rp "   Press Enter to retry, or type 'skip' to continue offline: " choice
+      [[ "${choice,,}" == "skip" ]] && echo "⚠️  Continuing without network — some installs will fail" && return 1
+      attempt=0
+    fi
+  done
+  return 0
+}
+
 run_phase() {
   local phase_name="$1"; shift
   echo ""
   echo "▶ Starting: $phase_name"
+  # Check network before network-dependent phases
+  wait_for_network || true
   set +e
   "$@"
   local exit_code=$?
@@ -104,11 +125,21 @@ run_sub_phases() {
   done
 }
 
-# Install a cask/formula only if its toggle is "true"
+# Install a cask/formula only if its toggle is "true", with retry on failure
 install_if() {
   local toggle="$1"; shift
   [[ "$toggle" == "true" ]] || { echo "⏭  Skipping: $*"; return 0; }
-  "$@"
+  local attempt
+  for attempt in 1 2 3; do
+    "$@" && return 0
+    echo "⚠️  Attempt $attempt failed: $*"
+    if [[ $attempt -lt 3 ]]; then
+      wait_for_network || return 1
+      echo "🔄 Retrying..."
+    fi
+  done
+  echo "❌ Failed after 3 attempts: $*"
+  return 1
 }
 
 # =============================================================================
@@ -931,6 +962,10 @@ else
     PHASE_SELECTED[$num]=1
   done
 fi
+
+# Check network before starting
+echo "🌐 Checking network connectivity..."
+wait_for_network || true
 
 # Execute selected phases
 for entry in "${PHASES[@]}"; do
