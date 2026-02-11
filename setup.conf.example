@@ -23,3 +23,83 @@ ENABLE_GPG_SIGNING="false"
 # Popular options: qwen2.5-coder:7b, llama3.1:8b, deepseek-coder-v2:16b, codellama:13b
 # Size guide: 7B ≈ 8GB RAM, 14B ≈ 16GB, 70B ≈ 48GB
 OLLAMA_MODEL="qwen2.5-coder:7b"
+
+# =============================================================================
+# Individual App Selection
+# Set to "true" to install, "false" to skip.
+# Dependencies are noted — if you disable a dependency, dependents will be skipped.
+# =============================================================================
+
+# --- Phase 4: Development Tools ---
+INSTALL_VSCODE="true"             # VS Code — primary editor
+INSTALL_CURSOR="true"             # Cursor — AI-native editor (uses VS Code extensions)
+INSTALL_ZED="true"                # Zed — GPU-accelerated editor
+INSTALL_ANDROID_STUDIO="true"     # Android Studio — required by: React Native Android (Phase 6)
+INSTALL_ITERM2="true"             # iTerm2 — feature-rich terminal
+INSTALL_GHOSTTY="true"            # Ghostty — GPU-accelerated terminal
+INSTALL_DOCKER="true"             # Docker Desktop — required by: Open WebUI (Phase 5)
+INSTALL_MISE="true"               # mise runtimes (Node, Python, Java) — required by: Phase 5, 6, 7
+
+# --- Phase 5: AI & LLM Development ---
+INSTALL_OLLAMA="true"             # Ollama — local LLM runtime, required by: Open WebUI, Continue.dev, Cline
+INSTALL_LM_STUDIO="true"          # LM Studio — local LLM GUI
+INSTALL_OPEN_WEBUI="true"         # Open WebUI — web chat UI, depends on: Docker, Ollama
+INSTALL_GEMINI_CLI="true"         # Gemini CLI — Google terminal agent, depends on: Node (mise)
+
+# --- Phase 6: React Native ---
+INSTALL_WATCHMAN="true"           # Watchman — file watcher for Metro
+INSTALL_COCOAPODS="true"          # CocoaPods — iOS dependency manager
+INSTALL_EAS_CLI="true"            # EAS CLI — Expo build/submit, depends on: Node (mise)
+INSTALL_ANDROID_SDK="true"        # Android SDK + emulator, depends on: Android Studio, Java (mise)
+INSTALL_IOS_SIMULATOR="true"      # iOS Simulator runtime, depends on: Xcode
+INSTALL_REACTOTRON="true"         # Reactotron — React Native debugger
+
+# --- Phase 7: Cloud CLI ---
+INSTALL_AWSCLI="true"             # AWS CLI v2
+INSTALL_WRANGLER="true"           # Cloudflare Wrangler, depends on: Node (mise)
+
+# --- Phase 8: Browsers ---
+INSTALL_CHROME="true"             # Google Chrome
+INSTALL_FIREFOX="true"            # Firefox
+
+# --- Phase 9: Productivity & Communication ---
+# Office & Productivity
+INSTALL_MICROSOFT_OFFICE="true"
+INSTALL_NOTION="true"
+INSTALL_OBSIDIAN="true"
+INSTALL_ZOOM="true"
+
+# Communication
+INSTALL_TELEGRAM="true"
+INSTALL_WHATSAPP="true"
+INSTALL_DISCORD="true"
+
+# Cloud Storage
+INSTALL_GOOGLE_DRIVE="true"
+
+# Dev Productivity
+INSTALL_POSTMAN="true"
+INSTALL_RAYCAST="true"
+INSTALL_RECTANGLE="true"
+INSTALL_1PASSWORD="true"
+
+# Media
+INSTALL_SPOTIFY="true"
+INSTALL_VLC="true"
+INSTALL_IINA="true"
+
+# Utilities
+INSTALL_APPCLEANER="true"
+INSTALL_THE_UNARCHIVER="true"
+INSTALL_KEKA="true"
+INSTALL_ALTTAB="true"
+INSTALL_STATS="true"
+INSTALL_KEEPINGYOUAWAKE="true"
+
+# Security
+INSTALL_ADGUARD="true"
+INSTALL_ADGUARD_VPN="true"
+INSTALL_VPN_UNLIMITED="true"      # Mac App Store — requires App Store sign-in
+INSTALL_KEEPSOLID_SMARTDNS="true"  # Mac App Store — requires App Store sign-in
+INSTALL_DPN="true"                # Deeper Network DPN — ARM only, installed via DMG
+INSTALL_MOONLOCK="true"           # Moonlock (MacPaw) — installed via DMG

@@ -58,6 +58,21 @@ OLLAMA_MODEL="qwen2.5-coder:7b"  # set to "" to skip model download
 
 Any value left blank becomes a manual post-setup task. The file is gitignored (contains secrets) — `setup.conf.example` is the committed template.
 
+The config also lets you toggle individual apps on/off:
+
+```bash
+# Disable apps you don't need
+INSTALL_DISCORD="false"
+INSTALL_SPOTIFY="false"
+INSTALL_LM_STUDIO="false"
+
+# Dependencies are documented — e.g. Open WebUI needs Docker
+INSTALL_DOCKER="true"              # required by: Open WebUI
+INSTALL_OPEN_WEBUI="true"          # depends on: Docker, Ollama
+```
+
+See `setup.conf.example` for the full list with dependency notes.
+
 The script is **idempotent** — safe to re-run at any time. All output is logged to `~/mac-setup.log`.
 
 ## Requirements

@@ -27,6 +27,24 @@ GITHUB_TOKEN="${GITHUB_TOKEN:-}"
 ENABLE_GPG_SIGNING="${ENABLE_GPG_SIGNING:-false}"
 OLLAMA_MODEL="${OLLAMA_MODEL:-qwen2.5-coder:7b}"
 
+# Default all app toggles to "true" (install everything unless overridden by config)
+: "${INSTALL_VSCODE:=true}" "${INSTALL_CURSOR:=true}" "${INSTALL_ZED:=true}" "${INSTALL_ANDROID_STUDIO:=true}"
+: "${INSTALL_ITERM2:=true}" "${INSTALL_GHOSTTY:=true}" "${INSTALL_DOCKER:=true}" "${INSTALL_MISE:=true}"
+: "${INSTALL_OLLAMA:=true}" "${INSTALL_LM_STUDIO:=true}" "${INSTALL_OPEN_WEBUI:=true}" "${INSTALL_GEMINI_CLI:=true}"
+: "${INSTALL_WATCHMAN:=true}" "${INSTALL_COCOAPODS:=true}" "${INSTALL_EAS_CLI:=true}"
+: "${INSTALL_ANDROID_SDK:=true}" "${INSTALL_IOS_SIMULATOR:=true}" "${INSTALL_REACTOTRON:=true}"
+: "${INSTALL_AWSCLI:=true}" "${INSTALL_WRANGLER:=true}"
+: "${INSTALL_CHROME:=true}" "${INSTALL_FIREFOX:=true}"
+: "${INSTALL_MICROSOFT_OFFICE:=true}" "${INSTALL_NOTION:=true}" "${INSTALL_OBSIDIAN:=true}" "${INSTALL_ZOOM:=true}"
+: "${INSTALL_TELEGRAM:=true}" "${INSTALL_WHATSAPP:=true}" "${INSTALL_DISCORD:=true}"
+: "${INSTALL_GOOGLE_DRIVE:=true}" "${INSTALL_POSTMAN:=true}" "${INSTALL_RAYCAST:=true}"
+: "${INSTALL_RECTANGLE:=true}" "${INSTALL_1PASSWORD:=true}"
+: "${INSTALL_SPOTIFY:=true}" "${INSTALL_VLC:=true}" "${INSTALL_IINA:=true}"
+: "${INSTALL_APPCLEANER:=true}" "${INSTALL_THE_UNARCHIVER:=true}" "${INSTALL_KEKA:=true}"
+: "${INSTALL_ALTTAB:=true}" "${INSTALL_STATS:=true}" "${INSTALL_KEEPINGYOUAWAKE:=true}"
+: "${INSTALL_ADGUARD:=true}" "${INSTALL_ADGUARD_VPN:=true}" "${INSTALL_VPN_UNLIMITED:=true}"
+: "${INSTALL_KEEPSOLID_SMARTDNS:=true}" "${INSTALL_DPN:=true}" "${INSTALL_MOONLOCK:=true}"
+
 # ---------------------------------------------------------------------------
 # Helpers
 # ---------------------------------------------------------------------------
@@ -65,6 +83,13 @@ run_sub_phases() {
     set -e
     [[ $rc -ne 0 ]] && echo "⚠️  $fn had errors (continuing...)" >&2
   done
+}
+
+# Install a cask/formula only if its toggle is "true"
+install_if() {
+  local toggle="$1"; shift
+  [[ "$toggle" == "true" ]] || { echo "⏭  Skipping: $*"; return 0; }
+  "$@"
 }
 
 # =============================================================================
@@ -409,13 +434,14 @@ phase_3() {
 # =============================================================================
 
 phase_4_editors() {
-  brew install --cask visual-studio-code
-  brew install --cask cursor
-  brew install --cask zed
-  brew install --cask android-studio
+  install_if "$INSTALL_VSCODE" brew install --cask visual-studio-code
+  install_if "$INSTALL_CURSOR" brew install --cask cursor
+  install_if "$INSTALL_ZED" brew install --cask zed
+  install_if "$INSTALL_ANDROID_STUDIO" brew install --cask android-studio
 }
 
 phase_4_vscode() {
+  [[ "$INSTALL_VSCODE" == "true" ]] || { echo "⏭  Skipping VS Code config (VS Code not selected)"; return 0; }
   export PATH="$PATH:/Applications/Visual Studio Code.app/Contents/Resources/app/bin"
 
   # Configure Nerd Font for VS Code terminal
@@ -441,26 +467,30 @@ phase_4_vscode() {
 }
 
 phase_4_terminals() {
-  brew install --cask iterm2
-  brew install --cask ghostty
+  install_if "$INSTALL_ITERM2" brew install --cask iterm2
+  install_if "$INSTALL_GHOSTTY" brew install --cask ghostty
 
   # iTerm2 Nerd Font
-  /usr/libexec/PlistBuddy -c "Set ':New Bookmarks:0:Normal Font' MesloLGSNF-Regular 13" \
-    ~/Library/Preferences/com.googlecode.iterm2.plist 2>/dev/null || true
+  [[ "$INSTALL_ITERM2" == "true" ]] && \
+    /usr/libexec/PlistBuddy -c "Set ':New Bookmarks:0:Normal Font' MesloLGSNF-Regular 13" \
+      ~/Library/Preferences/com.googlecode.iterm2.plist 2>/dev/null || true
 
   # Ghostty Nerd Font
-  mkdir -p ~/.config/ghostty
-  grep -q "font-family" ~/.config/ghostty/config 2>/dev/null || \
-    echo "font-family = MesloLGS NF" >> ~/.config/ghostty/config
+  if [[ "$INSTALL_GHOSTTY" == "true" ]]; then
+    mkdir -p ~/.config/ghostty
+    grep -q "font-family" ~/.config/ghostty/config 2>/dev/null || \
+      echo "font-family = MesloLGS NF" >> ~/.config/ghostty/config
+  fi
 }
 
 phase_4_docker() {
+  [[ "$INSTALL_DOCKER" == "true" ]] || { echo "⏭  Skipping Docker"; return 0; }
   brew install --cask docker
-  # Launch Docker Desktop so it's ready for Phase 5 (Open WebUI)
   open -a Docker 2>/dev/null || true
 }
 
 phase_4_mise() {
+  [[ "$INSTALL_MISE" == "true" ]] || { echo "⏭  Skipping mise + runtimes"; return 0; }
   brew install mise
   eval "$(mise activate zsh)"
 
@@ -498,6 +528,7 @@ phase_4() {
 # =============================================================================
 
 phase_5_ollama() {
+  [[ "$INSTALL_OLLAMA" == "true" ]] || { echo "⏭  Skipping Ollama"; return 0; }
   brew install ollama
 
   if [[ -z "$OLLAMA_MODEL" ]]; then
@@ -519,10 +550,15 @@ phase_5_ollama() {
 }
 
 phase_5_lm_studio() {
-  brew install --cask lm-studio
+  install_if "$INSTALL_LM_STUDIO" brew install --cask lm-studio
 }
 
 phase_5_open_webui() {
+  [[ "$INSTALL_OPEN_WEBUI" == "true" ]] || { echo "⏭  Skipping Open WebUI"; return 0; }
+  if [[ "$INSTALL_DOCKER" != "true" ]]; then
+    echo "⚠️  Skipping Open WebUI — requires Docker (INSTALL_DOCKER=true)"
+    return 0
+  fi
   # Wait for Docker daemon
   local docker_ready=false
   for i in {1..30}; do
@@ -547,6 +583,7 @@ phase_5_open_webui() {
 }
 
 phase_5_gemini_cli() {
+  [[ "$INSTALL_GEMINI_CLI" == "true" ]] || { echo "⏭  Skipping Gemini CLI"; return 0; }
   npm install -g @google/gemini-cli
 }
 
@@ -559,12 +596,17 @@ phase_5() {
 # =============================================================================
 
 phase_6_core() {
-  brew install watchman
-  brew install cocoapods
-  npm install -g eas-cli
+  install_if "$INSTALL_WATCHMAN" brew install watchman
+  install_if "$INSTALL_COCOAPODS" brew install cocoapods
+  [[ "$INSTALL_EAS_CLI" == "true" ]] && npm install -g eas-cli || echo "⏭  Skipping EAS CLI"
 }
 
 phase_6_android_sdk() {
+  [[ "$INSTALL_ANDROID_SDK" == "true" ]] || { echo "⏭  Skipping Android SDK"; return 0; }
+  if [[ "$INSTALL_ANDROID_STUDIO" != "true" ]]; then
+    echo "⚠️  Skipping Android SDK — requires Android Studio (INSTALL_ANDROID_STUDIO=true)"
+    return 0
+  fi
   export ANDROID_HOME=$HOME/Library/Android/sdk
   export PATH=$PATH:$ANDROID_HOME/cmdline-tools/latest/bin:$ANDROID_HOME/platform-tools:$ANDROID_HOME/emulator
 
@@ -583,11 +625,11 @@ phase_6_android_sdk() {
 }
 
 phase_6_ios() {
-  xcodebuild -downloadPlatform iOS 2>/dev/null || true
+  [[ "$INSTALL_IOS_SIMULATOR" == "true" ]] && xcodebuild -downloadPlatform iOS 2>/dev/null || true
 }
 
 phase_6_debugging() {
-  brew install --cask reactotron
+  install_if "$INSTALL_REACTOTRON" brew install --cask reactotron
 }
 
 phase_6() {
@@ -599,8 +641,8 @@ phase_6() {
 # =============================================================================
 
 phase_7() {
-  brew install awscli
-  npm install -g wrangler
+  install_if "$INSTALL_AWSCLI" brew install awscli
+  [[ "$INSTALL_WRANGLER" == "true" ]] && npm install -g wrangler || echo "⏭  Skipping Wrangler"
 }
 
 # =============================================================================
@@ -608,8 +650,8 @@ phase_7() {
 # =============================================================================
 
 phase_8() {
-  brew install --cask google-chrome
-  brew install --cask firefox
+  install_if "$INSTALL_CHROME" brew install --cask google-chrome
+  install_if "$INSTALL_FIREFOX" brew install --cask firefox
 }
 
 # =============================================================================
@@ -618,73 +660,81 @@ phase_8() {
 
 phase_9() {
   # Office & Productivity
-  brew install --cask microsoft-office
-  brew install --cask notion
-  brew install --cask obsidian
-  brew install --cask zoom
+  install_if "$INSTALL_MICROSOFT_OFFICE" brew install --cask microsoft-office
+  install_if "$INSTALL_NOTION" brew install --cask notion
+  install_if "$INSTALL_OBSIDIAN" brew install --cask obsidian
+  install_if "$INSTALL_ZOOM" brew install --cask zoom
 
   # Communication
-  brew install --cask telegram
-  brew install --cask whatsapp
-  brew install --cask discord
+  install_if "$INSTALL_TELEGRAM" brew install --cask telegram
+  install_if "$INSTALL_WHATSAPP" brew install --cask whatsapp
+  install_if "$INSTALL_DISCORD" brew install --cask discord
 
   # Cloud Storage
-  brew install --cask google-drive
+  install_if "$INSTALL_GOOGLE_DRIVE" brew install --cask google-drive
 
   # Dev Productivity
-  brew install --cask postman
-  brew install --cask raycast
-  brew install --cask rectangle
-  brew install --cask 1password
+  install_if "$INSTALL_POSTMAN" brew install --cask postman
+  install_if "$INSTALL_RAYCAST" brew install --cask raycast
+  install_if "$INSTALL_RECTANGLE" brew install --cask rectangle
+  install_if "$INSTALL_1PASSWORD" brew install --cask 1password
 
   # Media
-  brew install --cask spotify
-  brew install --cask vlc
-  brew install --cask iina
+  install_if "$INSTALL_SPOTIFY" brew install --cask spotify
+  install_if "$INSTALL_VLC" brew install --cask vlc
+  install_if "$INSTALL_IINA" brew install --cask iina
 
   # Utilities
-  brew install --cask appcleaner
-  brew install --cask the-unarchiver
-  brew install --cask keka
-  brew install --cask alt-tab
-  brew install --cask stats
-  brew install --cask keepingyouawake
+  install_if "$INSTALL_APPCLEANER" brew install --cask appcleaner
+  install_if "$INSTALL_THE_UNARCHIVER" brew install --cask the-unarchiver
+  install_if "$INSTALL_KEKA" brew install --cask keka
+  install_if "$INSTALL_ALTTAB" brew install --cask alt-tab
+  install_if "$INSTALL_STATS" brew install --cask stats
+  install_if "$INSTALL_KEEPINGYOUAWAKE" brew install --cask keepingyouawake
 
   # Security
-  brew install --cask adguard
-  brew install --cask adguard-vpn
-  mas install 694633015  || echo "⚠️  VPN Unlimited install failed — sign into App Store"
-  mas install 1475622766 || echo "⚠️  KeepSolid SmartDNS install failed — sign into App Store"
+  install_if "$INSTALL_ADGUARD" brew install --cask adguard
+  install_if "$INSTALL_ADGUARD_VPN" brew install --cask adguard-vpn
+  [[ "$INSTALL_VPN_UNLIMITED" == "true" ]] && { mas install 694633015 || echo "⚠️  VPN Unlimited install failed"; } || echo "⏭  Skipping VPN Unlimited"
+  [[ "$INSTALL_KEEPSOLID_SMARTDNS" == "true" ]] && { mas install 1475622766 || echo "⚠️  KeepSolid SmartDNS install failed"; } || echo "⏭  Skipping KeepSolid SmartDNS"
 
   # Security — Deeper Network DPN (not in Homebrew, ARM only)
-  if [[ ! -d "/Applications/DPN.app" ]]; then
-    # ⚠️ Version-pinned URL — update when new releases are available
-    curl -L -o /tmp/DPN.dmg "https://downloads.deeper.network/DPN/test/DPN-2.0.0.251202-macos-arm-64.dmg" && {
-      DPN_VOL=$(hdiutil attach /tmp/DPN.dmg -nobrowse -quiet 2>/dev/null | grep "/Volumes/" | awk -F'\t' '{print $NF}')
-      if [[ -n "$DPN_VOL" ]]; then
-        cp -R "$DPN_VOL"/*.app /Applications/ 2>/dev/null || true
-        hdiutil detach "$DPN_VOL" -quiet 2>/dev/null || true
-      fi
-      rm -f /tmp/DPN.dmg
-      echo "✅ DPN installed"
-    } || echo "⚠️  DPN download failed — install manually from https://deeper.network"
+  if [[ "$INSTALL_DPN" == "true" ]]; then
+    if [[ ! -d "/Applications/DPN.app" ]]; then
+      # ⚠️ Version-pinned URL — update when new releases are available
+      curl -L -o /tmp/DPN.dmg "https://downloads.deeper.network/DPN/test/DPN-2.0.0.251202-macos-arm-64.dmg" && {
+        DPN_VOL=$(hdiutil attach /tmp/DPN.dmg -nobrowse -quiet 2>/dev/null | grep "/Volumes/" | awk -F'\t' '{print $NF}')
+        if [[ -n "$DPN_VOL" ]]; then
+          cp -R "$DPN_VOL"/*.app /Applications/ 2>/dev/null || true
+          hdiutil detach "$DPN_VOL" -quiet 2>/dev/null || true
+        fi
+        rm -f /tmp/DPN.dmg
+        echo "✅ DPN installed"
+      } || echo "⚠️  DPN download failed — install manually from https://deeper.network"
+    else
+      echo "✅ DPN already installed"
+    fi
   else
-    echo "✅ DPN already installed"
+    echo "⏭  Skipping DPN"
   fi
 
   # Security — Moonlock (not in Homebrew)
-  if [[ ! -d "/Applications/Moonlock.app" ]]; then
-    curl -L -o /tmp/Moonlock.dmg "https://macpaw.com/download/moonlock" && {
-      MOONLOCK_VOL=$(hdiutil attach /tmp/Moonlock.dmg -nobrowse -quiet 2>/dev/null | grep "/Volumes/" | awk -F'\t' '{print $NF}')
-      if [[ -n "$MOONLOCK_VOL" ]]; then
-        cp -R "$MOONLOCK_VOL"/*.app /Applications/ 2>/dev/null || true
-        hdiutil detach "$MOONLOCK_VOL" -quiet 2>/dev/null || true
-      fi
-      rm -f /tmp/Moonlock.dmg
-      echo "⚠️  Moonlock installed — open it to complete setup (permissions, system extension, license activation)"
-    } || echo "⚠️  Moonlock download failed — install manually from https://macpaw.com/moonlock"
+  if [[ "$INSTALL_MOONLOCK" == "true" ]]; then
+    if [[ ! -d "/Applications/Moonlock.app" ]]; then
+      curl -L -o /tmp/Moonlock.dmg "https://macpaw.com/download/moonlock" && {
+        MOONLOCK_VOL=$(hdiutil attach /tmp/Moonlock.dmg -nobrowse -quiet 2>/dev/null | grep "/Volumes/" | awk -F'\t' '{print $NF}')
+        if [[ -n "$MOONLOCK_VOL" ]]; then
+          cp -R "$MOONLOCK_VOL"/*.app /Applications/ 2>/dev/null || true
+          hdiutil detach "$MOONLOCK_VOL" -quiet 2>/dev/null || true
+        fi
+        rm -f /tmp/Moonlock.dmg
+        echo "⚠️  Moonlock installed — open it to complete setup (permissions, system extension, license activation)"
+      } || echo "⚠️  Moonlock download failed — install manually from https://macpaw.com/moonlock"
+    else
+      echo "✅ Moonlock already installed"
+    fi
   else
-    echo "✅ Moonlock already installed"
+    echo "⏭  Skipping Moonlock"
   fi
 }
 
