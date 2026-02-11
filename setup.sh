@@ -155,7 +155,6 @@ declare -A CASK_APP_MAP=(
   [reactotron]="Reactotron"
   [google-chrome]="Google Chrome"
   [firefox]="Firefox"
-  [microsoft-office]="Microsoft Word"
   [notion]="Notion"
   [obsidian]="Obsidian"
   [zoom]="zoom.us"
@@ -838,7 +837,16 @@ phase_8() {
 
 phase_9() {
   # Office & Productivity
-  install_if "$INSTALL_MICROSOFT_OFFICE" brew install --cask microsoft-office
+  # Office & Productivity (Mac App Store — individual apps, free to download)
+  if [[ "$INSTALL_MICROSOFT_OFFICE" == "true" ]]; then
+    mas install 462054704 || echo "⚠️  Microsoft Word install failed"
+    mas install 462058435 || echo "⚠️  Microsoft Excel install failed"
+    mas install 462062816 || echo "⚠️  Microsoft PowerPoint install failed"
+    mas install 985367838 || echo "⚠️  Microsoft Outlook install failed"
+    mas install 784801555 || echo "⚠️  Microsoft OneNote install failed"
+  else
+    echo "⏭  Skipping Microsoft Office"
+  fi
   install_if "$INSTALL_NOTION" brew install --cask notion
   install_if "$INSTALL_OBSIDIAN" brew install --cask obsidian
   install_if "$INSTALL_ZOOM" brew install --cask zoom
@@ -1000,7 +1008,9 @@ phase_11() {
   # --- Apps ---
   for app in "Google Chrome" "Firefox" "Visual Studio Code" "Cursor" "Zed" "Android Studio" \
              "iTerm" "Ghostty" "LM Studio" "Moonlock" "DPN" "AdGuard" "AdGuard VPN" \
-             "VPN Unlimited" "KeepSolid SmartDNS" "Microsoft Word" "Telegram" "WhatsApp" "Discord" \
+             "VPN Unlimited" "KeepSolid SmartDNS" "Microsoft Word" "Microsoft Excel" \
+             "Microsoft PowerPoint" "Microsoft Outlook" "Microsoft OneNote" \
+             "Telegram" "WhatsApp" "Discord" \
              "Postman" "Raycast" "Rectangle" "1Password" "Notion" "Reactotron" \
              "Spotify" "VLC" "IINA" "AppCleaner" "The Unarchiver" "Keka" \
              "AltTab" "Stats" "KeepingYouAwake" "Obsidian" "zoom.us"; do
